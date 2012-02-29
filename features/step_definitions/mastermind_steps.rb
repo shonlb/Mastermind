@@ -27,22 +27,44 @@ def this_faker
   @this_faker ||= Faker.new
 end
 
+def set_max_games(max_games)
+  @max_games = max_games
+end
+
+def set_player(i_am_player)
+  @i_am_player = i_am_player
+end
+
 #-- Step Definitions ---------------------------------------------------
 
 Given /^I am not yet playing$/ do
 end
 
 When /^I start a new game$/ do
-  game = Mastermind::Game.new(this_faker, nil, nil)
-  game.setup
+  game = Mastermind::Game.new(this_faker, nil, nil, nil)
+  game.setup(1, 2) #enter any arguments except nil for this test
 end
 
-Then /^I should see "([^"]*)"$/ do |message|
-  this_faker.msg_updater.should include message
+
+Then /^I should see "([^"]*)"$/ do |alert_msg|
+  @this_faker.msg_updater.should include(alert_msg)
 end
 
-Then /^I am prompted "([^"]*)"$/ do |message|
-  this_faker.msg_updater.should include message
+And /^I am prompted "([^"]*)"$/ do |alert_msg|
+  @this_faker.msg_updater.should include(alert_msg)
+  game.setup(1,2) #enter any value
+end
+
+Given /^the minimum is "([^"]*)" and the maximum is "([^"]*)"$/ do |arg1, arg2|
+  pending # express the regexp above with the code you wish you had
+end
+
+When /^I enter "([^"]*)" I should see "([^"]*)"Let's try again\.\\n So, how many games shall we play\? Enter an even number from (\d+) to (\d+)\."([^"]*)"$/ do |arg1, arg2, arg3, arg4, arg5|
+  pending # express the regexp above with the code you wish you had
+end
+
+When /^I enter "([^"]*)" I should see "([^"]*)"OK \-\- we will play (\d+) games\."([^"]*)"$/ do |arg1, arg2, arg3, arg4|
+  pending # express the regexp above with the code you wish you had
 end
 
 Given /^the secret code is "([^"]*)"$/ do |arg1|
@@ -56,4 +78,3 @@ end
 Then /^the mark should be "([^"]*)"$/ do |arg1|
   pending # express the regexp above with the code you wish you had
 end
-
