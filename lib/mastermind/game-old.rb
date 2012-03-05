@@ -48,7 +48,7 @@ module Mastermind
 
       ttl_games = g.to_i
 
-      if ttl_games%2 == 0 and ttl_games >= 6 and ttl_games <= 20
+        if ttl_games%2 == 0 and ttl_games >= 6 and ttl_games <= 20
         @max_games = ttl_games
         @test_msg.puts alert_messages("game_count_confirm", ttl_games)
       else

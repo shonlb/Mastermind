@@ -26,16 +26,38 @@ end
 
 #-----------------------------------------------------------------------------
 
+class FakeStdOut
+  attr_reader :message_collection
+
+  def initialize
+    @message_collection = []
+  end
+
+  def puts(message)
+    @message_collection << message
+  end
+end
+
+class FakeStdIn
+  attr_writer :input
+
+  def gets
+    "#{input}\n"
+  end
+end
+
 module Mastermind
   describe Game do
 
     let(:test_msg) { double('test_msg').as_null_object }
-    let(:game) { Game.new(test_msg, nil, nil, nil) }
+    let(:fake_std_out) { FakeStdOut.new }
+    let(:game) { Game.new(fake_std_out, nil, nil, nil) }
 
     describe "#setup" do
       it "sends a welcome message" do
-        test_msg.should_receive(:puts).with(alert_messages("welcome", ""))
+        #test_msg.should_receive(:puts).with(alert_messages("welcome", ""))
         game.setup
+        fake_std_out.message.should == "Welcome"
       end
 
       it "displays the game rules" do
@@ -53,6 +75,13 @@ module Mastermind
           test_msg.should_receive(:puts).with(alert_messages("invalid", ""))
           game.set_max_games(tests[x])
         end
+      end
+    end
+
+    describe "#set_max_games" do
+      it "sets max games" do
+        game.set_max_games(nil)
+        puts "wil i get here?"
       end
     end
 

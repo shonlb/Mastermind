@@ -1,1 +1,1 @@
-require 'mastermind/game'
+require 'mastermind/game_setup'
