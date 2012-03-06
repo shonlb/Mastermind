@@ -81,7 +81,9 @@ module Mastermind
       end
     end
 
-    describe "#code_maker" do
+    describe "#code_making" do
+      it "auto-generates a code to be broken by the human"
+
       it "prompts for the code" do
         game.code_prompt.should == "Enter your 6-digit code:"
       end
@@ -108,14 +110,15 @@ module Mastermind
         end
       end
 
-      it "auto-generates a code to be broken by the human"
+    end
 
-      it "compares the human's guess to the generated code - exact match" do
+    describe "#guessing" do
+      it "compares the guess to the generated code - exact match" do
         game.set_code("6214")
         game.code_breaker("6214").should == "++++"
       end
 
-      it "compares the human's guess to the generated code - 3 matches" do
+      it "compares the guess to the generated code - 3 matches" do
         game.set_code("6214")
         tests = {
           "1214" => "-+++",
@@ -129,7 +132,7 @@ module Mastermind
         end
       end
 
-      it "compares the human's guess to the generated code - 2 matches" do
+      it "compares the guess to the generated code - 2 matches" do
         game.set_code("6214")
         tests = {
           "1215" => "-++-",
@@ -143,7 +146,7 @@ module Mastermind
         end
       end
 
-      it "compares the human's guess to the generated code - 1 match" do
+      it "compares the guess to the generated code - 1 match" do
         game.set_code("6214")
         tests = {
           "6155" => "+---",
@@ -157,9 +160,13 @@ module Mastermind
         end
       end
 
-      it "compares the human's guess to the generated code - no matches" do
+      it "compares the guess to the generated code - no matches" do
         game.set_code("6214")
         game.code_breaker("3425").should == "----"
+      end
+
+      it "tracks the number of guesses" do
+
       end
     end
   end

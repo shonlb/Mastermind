@@ -2,11 +2,13 @@ module Mastermind
 
   class Game
 
+    #--Helpers----------------------------------------------------------------
+
     def is_numeric?(s)
         !!Float(s) rescue false
     end
 
-    #----------------------------------------------------------------
+    #--Variables--------------------------------------------------------------
 
     def i_am_player(player)
       @i_am_player = player
@@ -16,7 +18,7 @@ module Mastermind
       @set_code = code
     end
 
-    #----------------------------------------------------------------
+    #--Setup-----------------------------------------------------------------
 
     def welcome
       "Welcome to Mastermind!"
@@ -31,7 +33,7 @@ module Mastermind
     end
 
     def validate_game_to_be_played(games)
-      if is_numeric?(games) == true && games >= 6 && games <= 20
+      if is_numeric?(games) == true && games.between?(6,20)
         player_select
       else
         number_of_games
@@ -43,7 +45,7 @@ module Mastermind
     end
 
     def validate_player(selection)
-      unless selection == "cm" && selection == "cb"
+      unless selection == "cm" || selection == "cb"
         player_select
       else
         if selection == "cm"
@@ -62,6 +64,8 @@ module Mastermind
         "These are the instructions for breaking a code."
       end
     end
+
+    #--Code----------------------------------------------------------------------
 
     def code_prompt
       "Enter your 6-digit code:"
@@ -85,6 +89,17 @@ module Mastermind
       end
     end
 
+    def auto_code
+      code = []
+      4.times do |x|
+        code << rand(6) + 1
+      end
+      set_code(code)
+      code
+    end
+
+    #--Guess----------------------------------------------------------------
+
     def code_breaker(code)
       check_code = ""
       i = 0
@@ -99,14 +114,7 @@ module Mastermind
       check_code
     end
 
-    def auto_code
-      code = []
-      4.times do |x|
-        code << rand(6) + 1
-      end
-      set_code(code)
-      code
-    end
+
 
   end
 end
