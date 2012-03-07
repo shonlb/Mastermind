@@ -165,8 +165,49 @@ module Mastermind
         game.code_breaker("3425").should == "----"
       end
 
-      it "tracks the number of guesses" do
+      it "tracks guesses in an array" do
+        game.guess_tracker("++--").should == ["++--"]
+      end
 
+      it "counts the number of guesses made" do
+        3.times do
+          game.guess_tracker("++--")
+        end
+        game.count_guesses.should == 3
+      end
+
+      it "alerts when 6 guesses have been made" do
+        6.times do
+          game.guess_tracker("++--")
+        end
+        game.guess_limit_reached.should == "You are out of guesses."
+      end
+    end
+
+    describe "#score-keeping" do
+      it "calculates score for a bad guess" do
+        guess = "6552"
+        game.set_code("6124")
+        game.code_breaker(guess)
+        game.calc_score(guess).should == 1
+      end
+
+      it "validates that the code-breaker has won" do
+        guess = "6552"
+        game.set_code(guess)
+        game.guess_tracker(game.code_breaker(guess))
+        game.code_breaker_wins?.should == true
+      end
+
+      it "validates that the code-maker has won" do
+        guess = "6552"
+        game.set_code("6124")
+        6.times do
+          game.guess_tracker(game.code_breaker(guess))
+          game.calc_score(guess)
+          game.code_breaker_wins?
+        end
+        game.code_maker_wins?.should == true
       end
     end
   end

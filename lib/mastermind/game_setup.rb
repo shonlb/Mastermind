@@ -10,6 +10,11 @@ module Mastermind
 
     #--Variables--------------------------------------------------------------
 
+    def initialize
+      @guesses = []
+      @cm_score = 0
+    end
+
     def i_am_player(player)
       @i_am_player = player
     end
@@ -98,7 +103,7 @@ module Mastermind
       code
     end
 
-    #--Guess----------------------------------------------------------------
+    #--Guessing----------------------------------------------------------------
 
     def code_breaker(code)
       check_code = ""
@@ -114,42 +119,33 @@ module Mastermind
       check_code
     end
 
-
-
-  end
-end
-
-
-
-
-
-
-
-
-
-
-
-
-
-=begin
-    def code_checker(code)
-      if is_numeric?(code) && code.size == 4
-        i = 0
-        checker = true
-        until checker == false || i == 4 do
-          check_value = code.index[i].chr.to_i
-          checker = check_value.between(1,6)
-          i+=
-        end
-
-        if checker == false
-          code_prompt
-        else
-          check_guess
-        end
-      else
-        code_prompt
-      end
+    def guess_tracker(guess)
+      @guesses << guess
     end
 
-=end
+    def count_guesses
+      @guesses.size
+    end
+
+    def guess_limit_reached
+      if count_guesses == 6
+        "You are out of guesses."
+      end
+     end
+
+     #--Score-Keeping-------------------------------------------------------------------------
+     def calc_score(guess)
+      if guess != @set_code
+        @cm_score += 1
+      end
+     end
+
+     def code_breaker_wins?
+      (@guesses.last == "++++") ? true : false
+     end
+
+     def code_maker_wins?
+      (count_guesses == 6 && code_breaker_wins? == false ) ? true : false
+     end
+  end
+end
