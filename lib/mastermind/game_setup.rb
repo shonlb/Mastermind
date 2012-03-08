@@ -11,8 +11,17 @@ module Mastermind
     #--Variables--------------------------------------------------------------
 
     def initialize
+      @code_size = 4
+      @floor_digit = 1
+      @ceiling_digit = 6
+      @min_games = 6
+      @max_games = 20
+      @number_of_games = 0
+      @games_played = 0
       @guesses = []
       @cm_score = 0
+      @i_am_player_score = 0
+      @ai_score = 0
     end
 
     def i_am_player(player)
@@ -21,6 +30,10 @@ module Mastermind
 
     def set_code(code)
       @set_code = code
+    end
+
+    def set_number_of_games(games)
+      @number_of_games = games.to_i
     end
 
     #--Setup-----------------------------------------------------------------
@@ -33,25 +46,25 @@ module Mastermind
       "Here's how to play..."
     end
 
-    def number_of_games
-      "Enter games to be played (6..20)."
+    def number_of_games_prompt
+      "Enter games to be played (#{@min_games}..#{@max_games})."
     end
 
     def validate_game_to_be_played(games)
-      if is_numeric?(games) == true && games.between?(6,20)
-        player_select
+      if is_numeric?(games) == true && games.between?(@min_games, @max_games)
+        set_number_of_games(games)
       else
-        number_of_games
+        number_of_games_prompt
       end
     end
 
-    def player_select
+    def player_select_prompt
       "Enter 'cm' or 'cb'."
     end
 
     def validate_player(selection)
       unless selection == "cm" || selection == "cb"
-        player_select
+        player_select_prompt
       else
         if selection == "cm"
           code_maker
@@ -73,16 +86,16 @@ module Mastermind
     #--Code----------------------------------------------------------------------
 
     def code_prompt
-      "Enter your 6-digit code:"
+      "Enter your #{@code_size}-digit code:"
     end
 
     def validate_code(code)
-      if is_numeric?(code) && code.size == 4
+      if is_numeric?(code) && code.size == @code_size
         i = 0
         checker = true
 
-        until i == 4 || checker == false do
-          checker = code[i].chr.to_i.between?(1,6)
+        until i == @code_size || checker == false do
+          checker = code[i].chr.to_i.between?(@floor_digit, @ceiling_digit)
           i+= 1
         end
 
@@ -96,7 +109,7 @@ module Mastermind
 
     def auto_code
       code = []
-      4.times do |x|
+      @code_size.times do |x|
         code << rand(6) + 1
       end
       set_code(code)
@@ -146,6 +159,17 @@ module Mastermind
 
      def code_maker_wins?
       (count_guesses == 6 && code_breaker_wins? == false ) ? true : false
+     end
+
+     def match_winner
+      (@i_am_player_score > @ai_score) ? "You've won the match!" : "I'm #1 -- You've lost the match!"
+     end
+
+     #--Next-Game------------------------------------------------------------------------------
+     def game_tracker
+      if @games_played < @number_of_games
+        @games_played += 1
+      end
      end
   end
 end

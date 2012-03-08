@@ -28,6 +28,17 @@ module Mastermind
 
   let(:game) {Game.new}
 
+  def setup_simulator(i_am_player, games_to_play)
+    game.i_am_player(i_am_player)
+    game.set_number_of_games(games_to_play)
+  end
+
+  def guess_simulator(guess)
+    game.guess_tracker(game.code_breaker(guess))
+    game.calc_score(guess)
+    game.code_breaker_wins?
+  end
+
     describe "#setup" do
 
       it "sends a welcome message" do
@@ -39,28 +50,26 @@ module Mastermind
       end
 
       it "prompts for number of games to be played" do
-        game.number_of_games.should == "Enter games to be played (6..20)."
+        game.number_of_games_prompt.should == "Enter games to be played (6..20)."
       end
+
 
       it "asks for number of games if entry is not numeric" do
         tests = ['',' ','b','b123']
         tests.each do |x|
-          game.validate_game_to_be_played(x).should == game.number_of_games
+          game.validate_game_to_be_played(x).should == game.number_of_games_prompt
         end
       end
 
       it "asks for number of games if entry is out of range" do
         tests = [0,1,2,3,4,5,21,22,99]
         tests.each do |x|
-          game.validate_game_to_be_played(x).should == game.number_of_games
+          game.validate_game_to_be_played(x).should == game.number_of_games_prompt
         end
       end
 
-      it "prompts to select player" do
-        tests = [6,7,12,15,20]
-        tests.each do |x|
-          game.validate_game_to_be_played(x).should == game.player_select
-        end
+      it "sets the number of games" do
+        game.set_number_of_games(7).should == 7
       end
 
       it "validates 'cm' selection" do
@@ -76,16 +85,18 @@ module Mastermind
       it "prompts to select player if initial selection is invalid" do
         tests = ['1','2','b','cmb','cbm', 'as12']
         tests.each do |x|
-          game.validate_player(x) == game.player_select
+          game.validate_player(x) == game.player_select_prompt
         end
       end
     end
 
     describe "#code_making" do
-      it "auto-generates a code to be broken by the human"
+      it "auto-generates a code to be broken by the human" do
+        game.auto_code.size.should == 4
+      end
 
       it "prompts for the code" do
-        game.code_prompt.should == "Enter your 6-digit code:"
+        game.code_prompt.should == "Enter your 4-digit code:"
       end
 
       it "validates the code is numeric" do
@@ -195,7 +206,7 @@ module Mastermind
       it "validates that the code-breaker has won" do
         guess = "6552"
         game.set_code(guess)
-        game.guess_tracker(game.code_breaker(guess))
+        guess_simulator(guess)
         game.code_breaker_wins?.should == true
       end
 
@@ -203,12 +214,25 @@ module Mastermind
         guess = "6552"
         game.set_code("6124")
         6.times do
-          game.guess_tracker(game.code_breaker(guess))
-          game.calc_score(guess)
-          game.code_breaker_wins?
+          guess_simulator(guess)
         end
         game.code_maker_wins?.should == true
       end
+    end
+
+    describe "#next_game" do
+      it "updates the total games played" do
+        setup_simulator("cb", 7)
+        game.game_tracker.should == 1
+      end
+
+      it "alternates player roles"
+      it "starts next game"
+    end
+
+    describe "#match winner" do
+      it "announces that the human player has won the match"
+      it "announces that the ai player has won the match"
     end
   end
 end
