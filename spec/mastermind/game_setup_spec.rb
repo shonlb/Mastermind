@@ -39,18 +39,34 @@ module Mastermind
     game.code_breaker_wins?
   end
 
+  def message(select, exp1, exp2)
+    message = {
+      "welcome"               =>  "Welcome to Mastermind!",
+      "rules"                 =>  "Here's how to play...",
+      "set_games"             =>  "Enter games to be played (#{exp1}..#{exp2}).",
+      "code_maker_instruct"   =>  "These are instructions for making a code.",
+      "code_breaker_instruct" =>  "These are instructions for breaking a code.",
+      "code_prompt"           =>  "Enter your #{exp1}-digit code:",
+      "guess_limit"           =>  "You are out of guesses.",
+      "win"                   =>  "You've won the match!",
+      "lose"                  =>  "I'm #1 -- You've lost the match!"
+    }
+
+    message[select]
+  end
+
     describe "#setup" do
 
       it "sends a welcome message" do
-        game.welcome.should == "Welcome to Mastermind!"
+        game.welcome.should == message("welcome", "", "")
       end
 
       it "displays game rules" do
-        game.rules.should == "Here's how to play..."
+        game.rules.should == message("rules", "", "")
       end
 
       it "prompts for number of games to be played" do
-        game.number_of_games_prompt.should == "Enter games to be played (6..20)."
+        game.number_of_games_prompt.should == message("set_games", 6, 20)
       end
 
 
@@ -74,12 +90,12 @@ module Mastermind
 
       it "validates 'cm' selection" do
         game.i_am_player("cm")
-        game.instructions.should == "These are the instructions for making a code."
+        game.instructions.should == message("code_maker_instruct", "", "")
       end
 
       it "validates 'cb' selection" do
         game.i_am_player("cb")
-        game.instructions. should == "These are the instructions for breaking a code."
+        game.instructions. should == message("code_breaker_instruct", "", "")
       end
 
       it "prompts to select player if initial selection is invalid" do
@@ -90,13 +106,39 @@ module Mastermind
       end
     end
 
+    #--Start Play----------------------------------------------------------------------------
+
+    describe "#start playing" do
+      it "starts the game for when the human player is the code-breaker" do
+        setup_simulator("cb", 7)
+        game.start_play.should == game.code_breaker_start
+      end
+
+      it "starts the game for when the human player is the code-maker" do
+        setup_simulator("cm", 7)
+        game.start_play.should == game.code_maker_start
+      end
+
+      it "alternates player roles" do
+        setup_simulator("cb",7)
+        game.alternate_players.should == "cm"
+      end
+    end
+
+    describe "#code-maker start" do
+    end
+
+    describe "code-breaker start" do
+    end
+
+    #--Code Making---------------------------------------------------------------------------
     describe "#code_making" do
       it "auto-generates a code to be broken by the human" do
         game.auto_code.size.should == 4
       end
 
       it "prompts for the code" do
-        game.code_prompt.should == "Enter your 4-digit code:"
+        game.code_prompt.should == message("code_prompt", 4, "")
       end
 
       it "validates the code is numeric" do
@@ -110,19 +152,20 @@ module Mastermind
       it "prompts for the code if it is an invalid length" do
         tests = ["1","12", "345", "123456"]
         tests.each do |x|
-          game.validate_code(x).should == game.code_prompt
+          game.validate_code(x).should == false
         end
       end
 
       it "prompts for the code if any of the digits are out of range" do
         tests = ["0364", "6578", "9090"]
         tests.each do |x|
-          game.validate_code(x).should == game.code_prompt
+          game.validate_code(x).should == false
         end
       end
 
     end
 
+    #--Code Breaking--------------------------------------------------------------------------
     describe "#guessing" do
       it "compares the guess to the generated code - exact match" do
         game.set_code("6214")
@@ -195,6 +238,7 @@ module Mastermind
       end
     end
 
+    #--Score Keeping---------------------------------------------------------------------------
     describe "#score-keeping" do
       it "calculates score for a bad guess" do
         guess = "6552"
@@ -203,21 +247,6 @@ module Mastermind
         game.calc_score(guess).should == 1
       end
 
-      it "validates that the code-breaker has won" do
-        guess = "6552"
-        game.set_code(guess)
-        guess_simulator(guess)
-        game.code_breaker_wins?.should == true
-      end
-
-      it "validates that the code-maker has won" do
-        guess = "6552"
-        game.set_code("6124")
-        6.times do
-          guess_simulator(guess)
-        end
-        game.code_maker_wins?.should == true
-      end
     end
 
     describe "#next_game" do
@@ -226,11 +255,28 @@ module Mastermind
         game.game_tracker.should == 1
       end
 
-      it "alternates player roles"
-      it "starts next game"
     end
 
-    describe "#match winner" do
+    #--Match Winner------------------------------------------------------------------------
+    describe "#Winner" do
+      it "validates that the code-breaker has won the current game" do
+        guess = "6552"
+        game.set_code(guess)
+        guess_simulator(guess)
+        game.code_breaker_wins?.should == true
+      end
+
+      it "validates that the code-maker has won the current game" do
+        guess = "6552"
+        game.set_code("6124")
+        6.times do
+          guess_simulator(guess)
+        end
+        game.code_maker_wins?.should == true
+      end
+
+      it "updates the game score for the code-maker: human"
+      it "updates the game score for the code-maker: ai"
       it "announces that the human player has won the match"
       it "announces that the ai player has won the match"
     end
