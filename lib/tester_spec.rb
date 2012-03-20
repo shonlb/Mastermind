@@ -1,33 +1,11 @@
 require 'spec_helper'
-
-=begin
-class FakeStdOut
-  attr_reader :message_collection
-
-  def initialize
-    @message_collection = []
-  end
-
-  def puts(message)
-    @message_collection << message
-  end
-end
-
-class FakeStdIn
-  attr_writer :input
-
-  def gets
-    "#{input}\n"
-  end
-end
-
-=end
-#--------------------------------------
 module Mastermind
   describe "Game" do
 
+  let(:show) {double("show").as_null_object}
+  let(:display) {Display.new(show)}
   let(:game) {Game.new}
-
+  
   def setup_simulator(i_am_player, games_to_play)
     game.i_am_player(i_am_player)
     game.set_number_of_games(games_to_play)
@@ -58,15 +36,18 @@ module Mastermind
     describe "#setup" do
 
       it "sends a welcome message" do
-        game.welcome.should == message("welcome", "", "")
+        game.show.should_receive(:puts).with(message("welcome", "",""))
+        display.welcome
       end
 
       it "displays game rules" do
-        game.rules.should == message("rules", "", "")
+        show.should_receive(:puts).with(message("rules", "",""))
+        display.rules
       end
 
       it "prompts for number of games to be played" do
-        game.number_of_games_prompt.should == message("set_games", 6, 20)
+        show.should_receive(:puts).with(message("set_games", 6, 20))
+        display.set_games(6, 20)
       end
 
 
@@ -234,7 +215,7 @@ module Mastermind
         6.times do
           game.guess_tracker("++--")
         end
-        game.guess_limit_reached.should == "You are out of guesses."
+        game.guess_limit_reached.should == message("guess_limit", "", "")
       end
     end
 
@@ -275,10 +256,22 @@ module Mastermind
         game.code_maker_wins?.should == true
       end
 
-      it "updates the game score for the code-maker: human"
-      it "updates the game score for the code-maker: ai"
-      it "announces that the human player has won the match"
-      it "announces that the ai player has won the match"
+      it "updates the game score for the code-maker: human" do
+        game.i_am_player_score.should == 1  
+      end
+      
+      it "updates the game score for the code-maker: ai" do
+        game.ai_score.should == 1
+      end
+      it "announces that the human player has won the match" do
+        game.i_am_player_score
+        game.match_winner.should == message("win", "", "")
+      end
+      it "announces that the ai player has won the match" do
+        game.ai_score
+        game.match_winner.should == message("lose", "", "")
+      end
     end
+    describe 
   end
 end

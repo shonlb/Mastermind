@@ -1,5 +1,15 @@
 module Mastermind
-
+  
+  class Player(role)
+   attr_accessor :role, :guesses, :wins, :losses
+    def initialize
+      @role = role
+      @guesses = []
+      @wins = 0
+      @losses = 0
+    end  
+  end
+  
   class Game
 
     #--Helpers----------------------------------------------------------------
@@ -19,14 +29,14 @@ module Mastermind
 
     def initialize
       @games_played = 0
-      @guesses = []
-      @code_maker_score = 0
-      @i_am_player_score = 0
-      @ai_score = 0
     end
 
-    def i_am_player(player)
-      @i_am_player = player
+    def i_am_player(role)
+      @i_am_player = Player(role).new
+    end
+    
+    def ai_player(role)
+      @ai_player = Player(role).new
     end
 
     def set_code(code)
@@ -196,7 +206,16 @@ module Mastermind
      def match_winner
       (@i_am_player_score > @ai_score) ? message("win","","") : message("lose","","")
      end
+     
+     def i_am_player_score
+       @i_am_player_score += 1
+     end
 
+     def ai_score
+       @ai_score += 1
+     end
+     
+     
      #--Next-Game--------------------------------------------------------------------
      def game_tracker
       if @games_played < @number_of_games
