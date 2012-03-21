@@ -1,9 +1,18 @@
 require "spec_helper"
 
+class FakeStdOut
+  attr_reader :message
+  
+  def puts(message)
+    @message = message
+  end
+end
+
 module Mastermind
   describe "Game" do
     #objects------------------------------------------------------------------------
-    let(:output) {double("output").as_null_object}
+    #let(:output) {double("output").as_null_object}
+    let(:output) { FakeStdOut.new }
     let(:display) {Display.new}
     let(:game) {Game.new(output)}
     
@@ -35,8 +44,9 @@ module Mastermind
     #tests--------------------------------------------------------------------------
     describe "#game setup" do
       it "displays welcome" do
-        output.should_receive(:puts).with(message("welcome", "", ""))
+        #output.should_receive(:puts).with(message("welcome", "", ""))
         game.show_welcome
+        output.message.should == message("welcome", "", "")
       end
       
       it "displays game rules" do
@@ -60,6 +70,8 @@ module Mastermind
       it "validates matches entered: valid" do
         game.validate("match_count", "6") == true
       end
+      
+      it "validates matches entered: invalid"
       
       it "sets matches to be played" do
         game.set_match_count(game.get_match_count("6")).should == 6
@@ -96,7 +108,7 @@ module Mastermind
         game.set_current_player.should == game.ai_player  
       end
       
-      it "displays role confirmation" do
+      xit "displays role confirmation" do
         game.create_human_player("cm")
         output.should_receive(:puts).with(message("confirm_role"), game.human_player.role)
         game.show_role_confirmation

@@ -13,7 +13,7 @@ module Mastermind
         @match_count = value.to_i
       else
         show_match_prompt
-        get_match_count
+        get_match_count(input)
       end
     end
     
