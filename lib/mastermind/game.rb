@@ -46,6 +46,16 @@ module Mastermind
       entry == "cm" || entry == "cb"
     end
     
+    def guess_status
+      status = []
+      guess = current_player.guesses.last.split("")
+      code = code.code.split("")
+      guess.size.times do |x|
+        status << (guess[x] == code[x]) ? "+" : "-" 
+      end
+      status.to_s
+    end
+    
     #--Player Input-------------------------------------
     def user_input
       input = gets.chomp 
@@ -55,7 +65,7 @@ module Mastermind
       if current_player == ai_player
         code.generate
       else
-        display.message("code_prompt", "", "")
+        display.message("code_prompt", code.code_size, "code")
         user_input
       end
     end
@@ -79,12 +89,20 @@ module Mastermind
       set_code(get_match_code)
     end
     
-    def code_breaker
-      display.code_grid()
+    def code_breaker_ai
+      display.code_grid(code.code)
+    end
+    
+    def code_breaker_human
+        display.message("code_prompt", code.code_size, "code")
+    end
+    
+    def launch_code_breaker
+      (current_player == ai_player) ? code_breaker_ai : code_breaker_human  
     end
     
     def game_play
-      launch_setup
+      launch_setup 
       launch_code_maker
       launch_code_breaker
     end

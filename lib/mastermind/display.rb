@@ -16,7 +16,7 @@ module Mastermind
         "confirm_role"          =>  "You are the #{exp1}",
         "code_maker_instruct"   =>  "These are instructions for making a code.",
         "code_breaker_instruct" =>  "These are instructions for breaking a code.",
-        "code_prompt"           =>  "Enter your #{exp1}-digit code:",
+        "code_prompt"           =>  "Enter your #{exp1}-digit #{exp2}:",
         "guess_limit"           =>  "You are out of guesses.",
         "current_match"         =>  "Now playing Match: #{exp1} of #{exp2}",
         "win"                   =>  "You've won the match!",

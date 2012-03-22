@@ -37,7 +37,7 @@ module Mastermind
         "confirm_role"          =>  "You are the #{exp1}",
         "code_maker_instruct"   =>  "These are instructions for making a code.",
         "code_breaker_instruct" =>  "These are instructions for breaking a code.",
-        "code_prompt"           =>  "Enter your #{exp1}-digit code:",
+        "code_prompt"           =>  "Enter your #{exp1}-digit #{exp2}:",
         "guess_limit"           =>  "You are out of guesses.",
         "current_match"         =>  "Now playing Match: #{exp1} of #{exp2}",
         "win"                   =>  "You've won the match!",
@@ -57,8 +57,12 @@ module Mastermind
       grid =  "CODE TO BREAK/n#{border}#{cells}#{cap}#{border}"
     end
     
-    def game_setup(matches, role)
-      game.setup(matches, role)
+    def stage_guess(role, guess, code)
+      game.create_human_player(role)
+      game.create_ai_player(game.human_player.role)
+      game.set_current_player
+      game.code.code = code
+      game.current_player.guesses << guess 
     end
     
     #tests--------------------------------------------------------------------------
@@ -179,9 +183,24 @@ module Mastermind
           output.message.should == code_grid("2346") 
         end
         
-        it "guesses: ai player is the code break" do
-          
+        it "guesses: ai player is the code breaker" do
+          game.create_human_player("cm")
+          game.create_ai_player(game.human_player.role)
+          game.ai_player.guesses << game.code.generate
+          game.ai_player.guesses.size.should == 1
         end
+        
+        it "compares the ai player's last guess to the code: no match" do
+          role = "cm"
+          guess = "1111"
+          code = "2222"
+          stage_guess(role, guess, code)
+          game.guess_status.should == "----" 
+        end
+        
+        
+        
+        it "displays the match tally"
         
       end
     end
