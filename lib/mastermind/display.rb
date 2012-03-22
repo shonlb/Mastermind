@@ -1,5 +1,8 @@
 module Mastermind
   class Display
+    def initialize(output)
+      @output = output
+    end
     
     #--Messages--------------------------------------------------------------
     def message(select, exp1, exp2)
@@ -15,12 +18,23 @@ module Mastermind
         "code_breaker_instruct" =>  "These are instructions for breaking a code.",
         "code_prompt"           =>  "Enter your #{exp1}-digit code:",
         "guess_limit"           =>  "You are out of guesses.",
+        "current_match"         =>  "Now playing Match: #{exp1} of #{exp2}",
         "win"                   =>  "You've won the match!",
         "lose"                  =>  "I'm #1 -- You've lost the match!"
       }
 
-      message[select]
+      @output.puts message[select]
     end
     
+    def code_grid(code)
+      border = "+---+---+---+---+\n"
+      cells =""
+      cap = "|\n"
+      digit = code.split("").each do |x|
+        cells << "| #{x} "
+      end
+      grid =  "CODE TO BREAK/n#{border}#{cells}#{cap}#{border}"
+      @output.puts grid
+    end
   end
 end

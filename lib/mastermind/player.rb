@@ -10,5 +10,11 @@ module Mastermind
       @losses = 0
     end
     
+    # -- Validators ---------------------------------------
+
+    
+    # -- AI Player ----------------------------------------
+
+    
   end
 end

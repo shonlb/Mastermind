@@ -1,29 +1,22 @@
 module Mastermind
   class Game
-    attr_accessor :output, :display, :matches, :match_count, :human_player, :ai_player, :current_player
+    attr_accessor :output, :display, :matches, :human_player, :ai_player, :current_player, :code
     
-    def initialize(output)
+    def initialize(output, input)
       @output = output
-      @display = Display.new
+      @input = input
+      @display = Display.new(output)
       @matches = Matches.new
-    end
-    
-    def set_match_count(value)
-      if validate("match_count", value)
-        @match_count = value.to_i
-      else
-        show_match_prompt
-        get_match_count(input)
-      end
+      @code = Code.new
     end
     
     def create_human_player(role)
-      if validate("role", role)
+      if valid_role?(role)
         set = (role == "cm") ? "Code Maker" : "Code Breaker"
         @human_player = Player.new(set)
       else
         show_role_prompt
-        get_role
+        user_input
       end  
     end
     
@@ -33,66 +26,67 @@ module Mastermind
     end
     
     def set_current_player
-      @current_player = (@human_player.role == "Code Maker") ? @ai_player : @human_player 
+      @current_player = (human_player.role == "Code Maker") ? ai_player : human_player 
     end
-    
-    #--Validators-------------------------------------
-    def is_numeric?(check_value)
-        !!Float(check_value) rescue false
+
+    def set_code(value)
+      code.code = value
     end
-    
-    def validate(type, what)
-      case type
-      when "match_count"
-        is_numeric?(what) && what.to_i.between?(@matches.min_matches,@matches.max_matches) && what.to_i%2 == 0
-      when "role"
-        what == "cm" || what == "cb"
+
+    def set_match_count(value)
+      if matches.is_valid?(value)
+        matches.match_count = value.to_i
       else
-        false
+        show_match_prompt
+        user_input
+      end
+    end    
+    #--Validators----------------------------------
+    def valid_role?(entry)
+      entry == "cm" || entry == "cb"
+    end
+    
+    #--Player Input-------------------------------------
+    def user_input
+      input = gets.chomp 
+    end
+    
+    def get_match_code
+      if current_player == ai_player
+        code.generate
+      else
+        display.message("code_prompt", "", "")
+        user_input
       end
     end
     
-    #--Display----------------------------------------       
-    def show_welcome
-      @output.puts display.message("welcome", "", "")
-    end
-
-    def show_rules
-      @output.puts display.message("rules", "", "")
-    end
-    
-    def show_match_prompt
-      @output.puts display.message("match_prompt", @matches.min_matches, @matches.max_matches)
-    end
-    
-    def show_role_prompt
-      @output.puts display.message("role_prompt", "", "")
-    end
-    
-    def show_role_confirmation
-      @output 
-    end
-    
-    #--User Input-------------------------------------
-    def get_match_count(input)
-      (input == nil) ? gets.chomp : input
-    end
-    
-    def get_role(input)
-      (input == nil) ? gets.chomp : input
-    end
-    
-    #--Game Progression
-    def setup(matches, role)
-      show_welcome
-      show_rules
-      show_match_prompt
-      set_match_count(get_match_count(matches))
-      show_role_prompt
-      create_human_player(get_role(role))
+    #--Game Progression---------------------
+    def launch_setup
+      display.message("welcome", "", "")
+      display.message("rules", "", "")
+      display.message("match_prompt", matches.min_matches, matches.max_matches)
+      set_match_count(user_input)
+      display.message("role_prompt", "", "")
+      create_human_player(user_input)
       create_ai_player(@human_player.role)
       set_current_player
-      show_role_confirmations(@human_player.role)
+      display.message("confirm_role", human_player.role, "")
+    end
+    
+    def launch_code_maker
+      matches.set_current
+      display.message("current_match", matches.current_match, matches.match_count)
+      set_code(get_match_code)
+    end
+    
+    def code_breaker
+      display.code_grid()
+    end
+    
+    def game_play
+      launch_setup
+      launch_code_maker
+      launch_code_breaker
     end
   end
 end
