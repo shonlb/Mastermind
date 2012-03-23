@@ -163,18 +163,31 @@ module Mastermind
       advance_game
     end
     
+    def get_human_guess
+      display.message("code_prompt", code.code_size, "code")
+      #get the guess
+      guess = user_input
+    end
+    
     def code_breaker_human
-        display.message("code_prompt", code.code_size, "code")
-        #get the guess
-        #validate the guess
-        #save the guess
-        #display the guess
-        #check for match
-        #continue guessing
-        #match_end_alert
-        #update_game_stats
-        #advance_game
+      while current_player.guesses.size < current_player.max_guesses
+        guess = get_human_guess
+        if code.is_valid?(guess)
+          current_player.set_guess(guess, code.code)
+          display.guesses(current_player.guesses)
+          if code_match?(current_player.guesses.last)
+            break
+          else
+            guess = get_human_guess
+          end
+        else
+          guess = get_human_guess
+        end
+      end
         
+      match_end_alert
+      update_game_stats
+      advance_game        
     end
     
     def launch_code_breaker
