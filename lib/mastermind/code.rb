@@ -22,15 +22,6 @@ module Mastermind
       end
     end
     
-    def generate
-      store = []
-      while store.size < @code_size
-        digit = rand(@max_digit) + 1
-        ((@min_digit..@max_digit) === digit) ? store << digit : store
-      end
-      store.to_s
-    end
-    
     def set_code(entry)
       code = entry
     end

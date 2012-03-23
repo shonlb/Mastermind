@@ -36,5 +36,27 @@ module Mastermind
       grid =  "CODE TO BREAK/n#{border}#{cells}#{cap}#{border}"
       @output.puts grid
     end
+    
+    def guess(guess)
+      row = ""
+      digit = guess.split("")
+      digit.each do |show|
+        row << "|  #{show}  "
+      end
+      grid = "#{row}|\n"
+      @output.puts grid
+    end
+    
+    def guesses(guesses)
+      grid = ""
+      border = "+----------+-----+-----+-----+-----+\n"
+      guesses.size.times do |row|
+        grid << border
+        grid << "| Guess #{row + 1}: "
+        grid << guess(guesses[row])
+      end
+      grid << border
+      @output.puts grid
+    end
   end
 end

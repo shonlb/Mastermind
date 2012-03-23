@@ -26,7 +26,7 @@ module Mastermind
     let(:game) {Game.new(output, input)}
     
     #game_simulators----------------------------------------------------------------
-      def message(select, exp1, exp2)
+    def message(select, exp1, exp2)
       message = {
         "welcome"               =>  "Welcome to Mastermind!",
         "rules"                 =>  "Here's how to play...",
@@ -56,13 +56,32 @@ module Mastermind
       end
       grid =  "CODE TO BREAK/n#{border}#{cells}#{cap}#{border}"
     end
+
+    def guess(guess)
+      row = ""
+      digit = guess.split("")
+      digit.each do |show|
+        row << "|  #{show}  "
+      end
+      grid = "#{row}|\n"
+    end
+    
+    def guesses(guesses)
+      grid = ""
+      border = "+----------+-----+-----+-----+-----+\n"
+      guesses.size.times do |row|
+        grid << border
+        grid << "| Guess #{row + 1}: "
+        grid << guess(guesses[row])
+      end
+      grid << border
+    end
     
     def stage_guess(role, guess, code)
       game.create_human_player(role)
-      game.create_ai_player(game.human_player.role)
+      game.create_ai_player
       game.set_current_player
-      game.code.code = code
-      game.current_player.guesses << guess 
+      game.current_player.set_guess(guess, code)
     end
     
     #tests--------------------------------------------------------------------------
@@ -123,13 +142,14 @@ module Mastermind
       end
       
       it "creates ai player as 'Code Breaker" do
-        game.create_ai_player("cm")
+        game.create_human_player("cm")
+        game.create_ai_player
         game.ai_player.role.should == "Code Breaker"
       end
       
       it "sets the current player (player having Code Breaker role)" do
         game.create_human_player("cm")
-        game.create_ai_player(game.human_player.role)
+        game.create_ai_player
         game.set_current_player.should == game.ai_player  
       end
       
@@ -142,7 +162,7 @@ module Mastermind
     end
     
     describe "# launch Code maker" do
-       it "sets_the_current_match" do
+      it "sets_the_current_match" do
         game.matches.set_current
         game.matches.current_match.should == 1
       end
@@ -153,7 +173,7 @@ module Mastermind
         game.display.message("current_match", game.matches.current_match, game.matches.match_count)
       end
       
-      it "validates the code: valid"do
+      it "validates the code: valid" do
         game.code.is_valid?("1111").should == true
       end
       
@@ -162,7 +182,13 @@ module Mastermind
       end
       
       it "generates code: ai player is the code maker" do
-        game.code.is_valid?(game.code.set_code(game.code.generate)).should == true 
+        code_size = game.code.code_size
+        min_digit = game.code.min_digit
+        max_digit = game.code.max_digit
+        game.create_human_player("cb")
+        game.create_ai_player
+        code = game.ai_player.generate_code
+        game.code.is_valid?(game.code.set_code(code)).should == true 
       end
       
       it "prompts for code: human player is the code maker" do
@@ -176,33 +202,44 @@ module Mastermind
         game.set_code("1111")
         game.code.code.should == "1111"  
       end
+    end
       
-      describe "#code breaker" do
-        it "displays the code to be broken: human is code maker" do
-          game.display.code_grid("2346")
-          output.message.should == code_grid("2346") 
-        end
-        
-        it "guesses: ai player is the code breaker" do
-          game.create_human_player("cm")
-          game.create_ai_player(game.human_player.role)
-          game.ai_player.guesses << game.code.generate
-          game.ai_player.guesses.size.should == 1
-        end
-        
-        it "compares the ai player's last guess to the code: no match" do
-          role = "cm"
-          guess = "1111"
-          code = "2222"
-          stage_guess(role, guess, code)
-          game.guess_status.should == "----" 
-        end
-        
-        
-        
-        it "displays the match tally"
-        
+    describe "#code breaker" do
+      it "displays the code to be broken: human is code maker" do
+        game.display.code_grid("2346")
+        output.message.should == code_grid("2346") 
       end
+        
+      it "guesses: ai player is the code breaker" do
+        game.create_human_player("cm")
+        game.create_ai_player
+        code_size = game.code.code_size
+        min_digit = game.code.min_digit
+        max_digit = game.code.max_digit
+        game.set_current_player
+        guess = game.current_player.generate_guess
+        game.current_player.guesses << guess
+        game.ai_player.guesses.size.should == 1
+      end
+        
+      it "compares the ai player's last guess to the code: no match" do
+        role = "cm"
+        guess = "1111"
+        code = "2222"
+        stage_guess(role, guess, code)
+        game.current_player.set_guess(guess, code)
+        game.current_player.guesses.last.should == "----"
+      end
+        
+      it "displays all guesses" do
+        role = "cm"
+        guess = "1111"
+        code = "1212"
+        stage_guess(role, guess, code)
+        game.display.guesses(game.current_player.guesses)
+        output.message.should == guesses(game.current_player.guesses)
+      end        
+        
     end
   end
 end
