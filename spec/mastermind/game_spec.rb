@@ -80,8 +80,8 @@ module Mastermind
     def stage_guess(role, guess, code)
       game.create_human_player(role)
       game.create_ai_player
-      game.set_current_player
-      game.current_player.set_guess(guess, code)
+      game.set_current_players
+      game.code_breaker.set_guess(guess, code)
     end
     
     #tests--------------------------------------------------------------------------
@@ -150,9 +150,17 @@ module Mastermind
       it "sets the current player (player having Code Breaker role)" do
         game.create_human_player("cm")
         game.create_ai_player
-        game.set_current_player.should == game.ai_player  
+        game.set_current_players
+        game.code_breaker.should == game.ai_player  
       end
       
+      it "sets the current player (player having Code Maker role)" do
+        game.create_human_player("cm")
+        game.create_ai_player
+        game.set_current_players
+        game.code_maker.should == game.human_player  
+      end
+            
       it "displays role confirmation" do
         game.create_human_player("cm")
         #output.should_receive(:puts).with(message("confirm_role"), game.human_player.role)
@@ -182,13 +190,11 @@ module Mastermind
       end
       
       it "generates code: ai player is the code maker" do
-        code_size = game.code.code_size
-        min_digit = game.code.min_digit
-        max_digit = game.code.max_digit
         game.create_human_player("cb")
         game.create_ai_player
-        code = game.ai_player.generate_code
-        game.code.is_valid?(game.code.set_code(code)).should == true 
+        game.set_current_players
+        code = game.code_maker.generate_code
+        game.code.is_valid?(code).should == true
       end
       
       it "prompts for code: human player is the code maker" do
@@ -216,9 +222,9 @@ module Mastermind
         code_size = game.code.code_size
         min_digit = game.code.min_digit
         max_digit = game.code.max_digit
-        game.set_current_player
-        guess = game.current_player.generate_guess
-        game.current_player.guesses << guess
+        game.set_current_players
+        guess = game.code_breaker.generate_guess
+        game.code_breaker.guesses << guess
         game.ai_player.guesses.size.should == 1
       end
         
@@ -227,8 +233,7 @@ module Mastermind
         guess = "1111"
         code = "2222"
         stage_guess(role, guess, code)
-        game.current_player.set_guess(guess, code)
-        game.current_player.guesses.last.should == "----"
+        game.code_breaker.guesses.last.should == "----"
       end
         
       it "displays all guesses" do
@@ -236,8 +241,8 @@ module Mastermind
         guess = "1111"
         code = "1212"
         stage_guess(role, guess, code)
-        game.display.guesses(game.current_player.guesses)
-        output.message.should == guesses(game.current_player.guesses)
+        game.display.guesses(game.code_breaker.guesses)
+        output.message.should == guesses(game.code_breaker.guesses)
       end        
         
     end
