@@ -1,6 +1,6 @@
 module Mastermind
   class Game
-    attr_accessor :output, :display, :matches, :human_player, :ai_player, :current_player, :code
+    attr_accessor :output, :display, :matches, :human_player, :ai_player, :code_breaker, :code_maker, :code
     
     def initialize(output, input)
       @output = output
@@ -8,7 +8,8 @@ module Mastermind
       @display = Display.new(output)
       @matches = Matches.new
       @code = Code.new
-      @current_player = nil
+      @code_breaker = nil
+      @code_maker = nil
     end
     
     def create_human_player(role)
@@ -32,13 +33,16 @@ module Mastermind
       @ai_player.max_digit = code.max_digit
     end
     
-    def set_current_player
-      if current_player == nil
-        current_player = (human_player.role == "Code Maker") ? ai_player : human_player
+    def set_current_players
+      if code_breaker == nil
+        @code_breaker = (human_player.role == "Code Maker") ? ai_player : human_player
+        @code_maker = (human_player.role == "Code Maker") ? human_player : ai_player
       else
-        current_player = (current_player == ai_player) ? human_player : ai_player
+        @code_breaker = (code_breaker == human_player) ? ai_player : human_player
+        @code_maker = (code_breaker == human_player) ? ai_player : human_player
       end   
     end
+    
 
     def set_code(value)
       code.code = value
@@ -70,10 +74,10 @@ module Mastermind
     end
     
     def update_player_stats
-      if code_match?(current_player.guesses.last)
-        (current_player == ai_player) ? ai_win : human_win
+      if code_match?(code_breaker.guesses.last)
+        (code_breaker == ai_player) ? ai_win : human_win
       else
-        (current_player == ai_player) ? human_win : ai_win
+        (code_breaker == ai_player) ? human_win : ai_win
       end
     end 
     
@@ -101,8 +105,8 @@ module Mastermind
     end
     
     def get_match_code
-      if current_player == ai_player
-        current_player.generate_code
+      if code_breaker == ai_player
+        code_breaker.generate_code
       else
         display.message("code_prompt", code.code_size, "code")
         user_input
@@ -111,10 +115,10 @@ module Mastermind
     
     #--Display---------------------------------------------
     def match_end_alert
-      if current_player.guesses === code.code
-        (current_player == ai_player) ? display.message("lose", "", "") : display.message("win", "", "")
+      if code_breaker.guesses === code.code
+        (code_breaker == ai_player) ? display.message("lose", "", "") : display.message("win", "", "")
       else
-        (current_player == ai_player) ? display.message("win", "", "") : display.message("lose", "", "")
+        (code_breaker == ai_player) ? display.message("win", "", "") : display.message("lose", "", "")
       end
     end
     
@@ -134,21 +138,21 @@ module Mastermind
         create_ai_player(@human_player.role)
       end
       update_current_match
-      set_current_player
+      set_code_breaker
       display.message("confirm_role", human_player.role, "")
     end
     
     def launch_code_maker
       matches.set_current
-      current_player.set_code_definitions(code.code_size, code.min_digit, code.max_digit)
+      code_breaker.set_code_definitions(code.code_size, code.min_digit, code.max_digit)
       display.message("current_match", matches.current_match, matches.match_count)
       set_code(get_match_code)
     end
     
     def ai_guesses
-      while current_player.guesses.size < current_player.max_guesses
-        current_player.set_guess(current_player.generate_guess, code.code)
-        if code_match?(current_player.guesses.last)
+      while code_breaker.guesses.size < code_breaker.max_guesses
+        code_breaker.set_guess(code_breaker.generate_guess, code.code)
+        if code_match?(code_breaker.guesses.last)
           break #ai has broken the code
         end
       end
@@ -157,7 +161,7 @@ module Mastermind
     def code_breaker_ai
       display.code_grid(code.code)
       ai_guesses
-      display.guesses(current_player.guesses)
+      display.guesses(code_breaker.guesses)
       match_end_alert
       update_game_stats
       advance_game
@@ -170,12 +174,12 @@ module Mastermind
     end
     
     def code_breaker_human
-      while current_player.guesses.size < current_player.max_guesses
+      while code_breaker.guesses.size < code_breaker.max_guesses
         guess = get_human_guess
         if code.is_valid?(guess)
-          current_player.set_guess(guess, code.code)
-          display.guesses(current_player.guesses)
-          if code_match?(current_player.guesses.last)
+          code_breaker.set_guess(guess, code.code)
+          display.guesses(code_breaker.guesses)
+          if code_match?(code_breaker.guesses.last)
             break
           else
             guess = get_human_guess
@@ -191,7 +195,7 @@ module Mastermind
     end
     
     def launch_code_breaker
-      (current_player == ai_player) ? code_breaker_ai : code_breaker_human  
+      (code_breaker == ai_player) ? code_breaker_ai : code_breaker_human  
     end
     
     def advance_game
