@@ -210,7 +210,7 @@ module Mastermind
       end
     end
       
-    describe "#code breaker" do
+    describe "#code breaker: ai" do
       it "displays the code to be broken: human is code maker" do
         game.display.code_grid("2346")
         output.message.should == code_grid("2346") 
@@ -243,8 +243,27 @@ module Mastermind
         stage_guess(role, guess, code)
         game.display.guesses(game.code_breaker.guesses)
         output.message.should == guesses(game.code_breaker.guesses)
-      end        
-        
+      end         
+    end
+    
+    describe "#code breaker: human" do
+      it "prompts for the first guess"
+      it "gets the guess"
+      it "validates the guess"
+      it "compares the guess to the code"
+      it "saves the guess: zero match"
+      it "saves the guess: 1 match"
+      it "saves the guess: 2 matches"
+      it "saves the guess: 3 matches"
+      it "saves the guess: all match"
+      it "displays all guesses"
+      it "checks game status: code breaker wins"
+      it "checks game status: code breaker loses"
+      it "updates games stats"
+      it "displays winner message"
+      it "displays loser message"
+      it "advances the game"
+      it "ends the game: displays message"
     end
   end
 end
