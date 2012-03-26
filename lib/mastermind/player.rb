@@ -29,14 +29,14 @@ module Mastermind
     end
 
     def set_guess(guess, code)
-      status = []
+      status = ""
       guess_digit = guess.split("")
       code_digit = code.split("")
       guess_digit.size.times do |x|
         status << ((guess_digit[x] == code_digit[x]) ? guess_digit[x] : "-")
       end
       
-      @guesses << status.to_s
+      @guesses << status
     end
     
     # -- Validators ---------------------------------------
@@ -45,43 +45,40 @@ module Mastermind
     end
     
     # -- AI Player ----------------------------------------
-     def get_random_digit
-       digit = rand(max_digit) + 1
-       store = ((min_digit..max_digit) === digit) ? digit : store
-       store.to_s 
-     end  
+    def get_random_digit
+      digit = rand(max_digit) + 1
+      store = ((min_digit..max_digit) === digit) ? digit : store
+    end  
     
     def make_first_guess
-      store = []
+      store = ""
       guess_size.times do |digit|
-        store << get_random_digit
+        store << get_random_digit.to_s
       end
-      store.to_s
+      store
     end
     
     def make_guess
-      store = []
+      store = ""
       compare = guesses.last.split("")
       while store.size < guess_size
         check = compare[store.size]
-        store << ((is_numeric?(check)) ? check : get_random_digit)
+        store << ((is_numeric?(check)) ? check.to_s : get_random_digit.to_s)
       end
-      store.to_s      
+      store
     end
      
     def generate_code
-      store = []
-      while store.size < guess_size
-        store << get_random_digit
+      
+      store = ""
+      while store.size < @guess_size
+        store << get_random_digit.to_s
       end
-      store.to_s
+      store
     end 
         
     def generate_guess
-      store = []
-      (guesses == []) ? make_first_guess : make_guess  
-      end
-      store.to_s
+      store = (guesses == []) ? make_first_guess : make_guess
     end
     
   end
