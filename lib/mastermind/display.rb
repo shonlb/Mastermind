@@ -20,7 +20,8 @@ module Mastermind
         "guess_limit"           =>  "You are out of guesses.",
         "current_match"         =>  "Now playing Match: #{exp1} of #{exp2}",
         "win"                   =>  "You've won the match!",
-        "lose"                  =>  "I'm #1 -- You've lost the match!"
+        "lose"                  =>  "I'm #1 -- You've lost the match!",
+        "game_over"             =>  "Thanks for playing! Come again."
       }
 
       @output.puts message[select]

@@ -1,15 +1,15 @@
 require "spec_helper"
 
-class FakeMessageOut
-  attr_reader :message
+class FakeDisplayOut
+  attr_reader :display
   
-  def puts(message)
-    @message = message
+  def puts(display)
+    @display = display
   end
 end
 
-class FakeStdIn
-  attr_reader :entry
+class FakeEntryIn
+  attr_reader :input
   
   def gets(input)
     @input = input
@@ -20,8 +20,8 @@ module Mastermind
   describe "Game" do
     #objects------------------------------------------------------------------------
     #let(:output) {double("output").as_null_object}
-    let(:output) { FakeMessageOut.new }
-    let(:input) {FakeStdIn.new}
+    let(:output) { FakeDisplayOut.new }
+    let(:input) {FakeEntryIn.new}
     let(:display) {Display.new}
     let(:game) {Game.new(output, input)}
     
@@ -41,7 +41,8 @@ module Mastermind
         "guess_limit"           =>  "You are out of guesses.",
         "current_match"         =>  "Now playing Match: #{exp1} of #{exp2}",
         "win"                   =>  "You've won the match!",
-        "lose"                  =>  "I'm #1 -- You've lost the match!"
+        "lose"                  =>  "I'm #1 -- You've lost the match!",
+        "game_over"             =>  "Thanks for playing! Come again."
       }
 
       message[select]
@@ -89,22 +90,24 @@ module Mastermind
       it "displays welcome" do
         #output.should_receive(:puts).with(message("welcome", "", ""))
         game.display.message("welcome", "", "")
-        output.message.should == message("welcome", "", "")
+        output.display.should == message("welcome", "", "")
       end
       
       it "displays game rules" do
         #output.should_receive(:puts).with(message("rules", 6, 20))
         game.display.message("rules", "", "")
-        output.message.should == message("rules", "", "")
+        output.display.should == message("rules", "", "")
       end
       
       it "prompts for the number of matches" do
         #output.should_receive(:puts).with(message("match_prompt", 6, 20))
         game.display.message("match_prompt", 6, 20)
-        output.message.should == message("match_prompt", 6, 20)
+        output.display.should == message("match_prompt", 6, 20)
       end
       
-      it "gets the number of matches for the game"
+      it "gets the number of matches for the game" do
+        
+      end
       
       it "validates matches entered: invalid" do
         game.matches.is_valid?("m") == false
@@ -127,7 +130,7 @@ module Mastermind
       it "prompts human player for role" do
         #output.should_receive(:puts).with(message("role_prompt", "", ""))
         game.display.message("role_prompt", "", "")
-        output.message.should == message("role_prompt", "", "")
+        output.display.should == message("role_prompt", "", "")
       end
       
       it "gets the role input"
@@ -165,7 +168,7 @@ module Mastermind
         game.create_human_player("cm")
         #output.should_receive(:puts).with(message("confirm_role"), game.human_player.role)
         game.display.message("confirm_role", game.human_player.role, "")
-        output.message.should == message("confirm_role", game.human_player.role, "")
+        output.display.should == message("confirm_role", game.human_player.role, "")
       end
     end
     
@@ -199,7 +202,7 @@ module Mastermind
       
       it "prompts for code: human player is the code maker" do
         game.display.message("code_prompt", "", "")
-        output.message.should == message("code_prompt", "", "")
+        output.display.should == message("code_prompt", "", "")
       end
       
       it "gets the code from human_player"
@@ -213,7 +216,7 @@ module Mastermind
     describe "#code breaker: ai" do
       it "displays the code to be broken: human is code maker" do
         game.display.code_grid("2346")
-        output.message.should == code_grid("2346") 
+        output.display.should == code_grid("2346") 
       end
         
       it "guesses: ai player is the code breaker" do
@@ -233,7 +236,7 @@ module Mastermind
         guess = "1111"
         code = "2222"
         stage_guess(role, guess, code)
-        game.code_breaker.guesses.last.should == "----"
+        game.ai_player.guesses.last.should == "----"
       end
         
       it "displays all guesses" do
@@ -242,8 +245,53 @@ module Mastermind
         code = "1212"
         stage_guess(role, guess, code)
         game.display.guesses(game.code_breaker.guesses)
-        output.message.should == guesses(game.code_breaker.guesses)
-      end         
+        output.display.should == guesses(game.code_breaker.guesses)
+      end
+      
+      it "updates the current match" do
+        game.matches.current_match = 1
+        game.update_current_match.should == 2  
+      end
+      
+      it "updates the code_breaker's stats: win" do
+        game.create_human_player("cm")
+        game.create_ai_player
+        game.set_current_players
+        game.code_breaker.wins = 2
+        game.code_breaker_win
+        game.ai_player.wins.should == 3
+      end
+
+      it "updates the code_breaker's stats: loss" do
+        game.create_human_player("cm")
+        game.create_ai_player
+        game.set_current_players
+        game.code_breaker.losses = 2
+        game.code_maker_win
+        game.ai_player.losses.should == 3
+      end
+      
+      it "displays winner message" do
+        game.display.message("win", "", "")
+        output.display.should == message("win", "", "")
+      end
+      
+      it "displays loser message" do
+        game.display.message("lose", "", "")
+        output.display.should == message("lose", "", "")
+      end
+      
+      it "advances the game"
+        #simulate setup
+        #simultate code_maker
+        #simulate code_breaker
+        #game.match.current_match.should == 2
+      
+      it "ends the game: displays message"   do
+        game.display.message("game over", "", "")
+        output.display.should == message("game over", "", "")
+      end
+
     end
     
     describe "#code breaker: human" do
