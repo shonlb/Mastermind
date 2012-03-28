@@ -28,36 +28,42 @@ module Mastermind
     end
     
     def code_grid(code)
-      border = "+---+---+---+---+\n"
+      border = "               +---+---+---+---+\n"
       cells =""
       cap = "|\n"
       digit = code.split("").each do |x|
         cells << "| #{x} "
       end
-      grid =  "\nCODE TO BREAK\n#{border}#{cells}#{cap}#{border}\n"
+      grid =  "#{border}CODE TO BREAK: #{cells}#{cap}#{border}\n"
       @output.puts grid
     end
     
-    def guess(guess)
-      row = ""
-      digit = guess.split("")
-      digit.each do |show|
-        row << "|  #{show}  "
-      end
-      grid = "#{row}|\n"
-      @output.puts grid
-    end
-    
-    def guesses(guesses)
+    def guesses(all_guesses)
       grid = ""
       border = "+----------+-----+-----+-----+-----+\n"
-      guesses.size.times do |row|
+      all_guesses.size.times do |row|
         grid << border
         grid << "| Guess #{row + 1}: "
-        grid << guess(guesses[row])
+        cell = all_guesses[row].split("")
+        cell.each do |x|
+          grid << "|  #{x}  "
+        end
+        grid << "|\n"
       end
       grid << border
       @output.puts grid
     end
+    
+      def stats(player, wins, losses, score)
+        stats =  "\n"
+        stats << "#{player}: WINS: #{wins}  |  LOSSES: #{losses}  |  POINTS: #{score}\n"
+        @output.puts stats
+      end
+      
+      def game_stats(current_match, match_count)
+        stats = "\nMatches played: #{current_match} of #{match_count}\n"
+        @output.puts stats
+      end
+    
   end
 end

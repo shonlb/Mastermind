@@ -27,14 +27,19 @@ module Mastermind
       @ai_player = Player.new(set)
     end
     
-    def set_current_players
+    def set_current_players 
+      new_code_maker = ""
+      new_code_breaker = ""     
       if code_breaker == nil
-        @code_breaker = (human_player.role == "Code Maker") ? ai_player : human_player
-        @code_maker = (human_player.role == "Code Maker") ? human_player : ai_player
+        new_code_breaker = (human_player.role == "Code Maker") ? ai_player : human_player
+        new_code_maker = (human_player.role == "Code Maker") ? human_player : ai_player
       else
-        @code_breaker = (code_breaker == human_player) ? ai_player : human_player
-        @code_maker = (code_breaker == human_player) ? ai_player : human_player
-      end   
+        new_code_breaker = (code_breaker == human_player) ? ai_player : human_player
+        new_code_maker = (code_maker == human_player) ? ai_player : human_player
+      end
+      
+      @code_breaker = new_code_breaker
+      @code_maker = new_code_maker   
     end
 
     def set_code(value)
@@ -67,11 +72,9 @@ module Mastermind
     
     def update_player_stats
       if code_match?(code_breaker.guesses.last)
-        code_breaker.win
-      elsif match.current_match == match.match_count
-        code_maker_win
+        code_breaker_win
       else
-        #no stats to update
+        code_maker_win
       end
     end  
     
@@ -79,19 +82,7 @@ module Mastermind
       matches.match_count += 1
     end
     
-    def update_game_stats
-      update_player_stats
-      update_match
-    end
-
-    def set_ai_guesses
-      while code_breaker.guesses.size < code_breaker.max_guesses
-        code_breaker.set_guess(code_breaker.generate_guess, code.code)
-        if code_match?(code_breaker.guesses.last)
-          break #ai has broken the code
-        end
-      end
-    end    
+    
        
     #--Validators----------------------------------
     def valid_role?(entry)
@@ -99,11 +90,15 @@ module Mastermind
     end
     
     def valid_code?(entry)
-      (code.is_valid?(entry)) ? true : false
+      code.is_valid?(entry)
     end
     
     def code_match?(check_value)
-      !!Float(check_value) rescue false
+      check_value == code.code
+    end
+    
+    def all_matches_played?
+      matches.current_match == matches.match_count
     end
     
     #--Player Input-------------------------------------
@@ -123,21 +118,26 @@ module Mastermind
     
     def get_human_guess
       display.message("code_prompt", code.code_size, "code")
-      #get the guess
       guess = user_input
     end    
     
     #--Display---------------------------------------------
     def match_end_alert
-      if code_breaker.guesses === code.code
+      if code_match?(code_breaker.guesses.last)
         (code_breaker == ai_player) ? display.message("lose", "", "") : display.message("win", "", "")
-      else
+      else code_breaker.all_guesses_made?
         (code_breaker == ai_player) ? display.message("win", "", "") : display.message("lose", "", "")
       end
     end
     
+    def display_game_stats
+      display.stats("You", human_player.wins, human_player.losses, human_player.score)
+      display.stats("AI", ai_player.wins, ai_player.losses, ai_player.score)
+      display.game_stats(matches.current_match, matches.match_count)
+    end
+    
     def game_over
-      
+      display.message("game_over", "", "")
     end
     
     #--Game Progression------------------------------------
@@ -165,10 +165,11 @@ module Mastermind
     
     def code_breaker_ai
       display.code_grid(code.code)
-      code_breaker.generate_guess
+      code_breaker.exhaust_guesses(code.code)
       display.guesses(code_breaker.guesses)
       match_end_alert
-      update_game_stats
+      update_player_stats
+      display_game_stats
       advance_game
     end
     
@@ -198,21 +199,13 @@ module Mastermind
     end
     
     def advance_game
-      if match.current_match < match.match_count
-        game_play
-      else
-        game_over
-      end
+      (all_matches_played?) ? game_over : game_play
     end
     
     def game_play
       launch_setup 
       launch_code_maker
       launch_code_breaker
-    end
-    
-    def game_over
-      display.message("game over", "", "")
     end
   end
   

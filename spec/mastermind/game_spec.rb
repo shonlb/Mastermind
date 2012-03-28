@@ -49,13 +49,13 @@ module Mastermind
     end
     
     def code_grid(code)
-      border = "+---+---+---+---+\n"
+      border = "               +---+---+---+---+\n"
       cells =""
       cap = "|\n"
       digit = code.split("").each do |x|
         cells << "| #{x} "
       end
-      grid =  "\nCODE TO BREAK\n#{border}#{cells}#{cap}#{border}\n"
+      grid =  "#{border}CODE TO BREAK: #{cells}#{cap}#{border}\n"
     end
 
     def guess(guess)
@@ -194,6 +194,10 @@ module Mastermind
         game.create_human_player("cb")
         game.create_ai_player
         game.set_current_players
+        guess_size = game.code.code_size
+        min_digit = game.code.min_digit
+        max_digit = game.code.max_digit
+        game.code_maker.set_code_definitions(guess_size, min_digit, max_digit)
         code = game.code_maker.generate_code
         game.code.is_valid?(code).should == true
       end
@@ -212,30 +216,54 @@ module Mastermind
     end
       
     describe "#code breaker: ai" do
+      it "sets the code definitions" do
+        game.create_human_player("cm")
+        game.create_ai_player
+        game.set_current_players
+        guess_size = game.code.code_size
+        min_digit = game.code.min_digit
+        max_digit = game.code.max_digit
+        game.code_breaker.set_code_definitions(guess_size, min_digit, max_digit)
+        game.ai_player.guess_size.should == 4  
+      end
+      
       it "displays the code to be broken: human is code maker" do
         game.display.code_grid("2346")
         output.display.should == code_grid("2346") 
       end
         
-      it "guesses: ai player is the code breaker" do
+      it "guesses: ai player is the code breaker: 1 guess" do
         game.create_human_player("cm")
         game.create_ai_player
+        code = game.set_code("5544")
         code_size = game.code.code_size
         min_digit = game.code.min_digit
         max_digit = game.code.max_digit
         game.set_current_players
+        game.code_breaker.set_code_definitions(code_size, min_digit, max_digit)
         guess = game.code_breaker.generate_guess
-        game.code_breaker.guesses << guess
+        game.code_breaker.set_guess(guess, code)
         game.ai_player.guesses.size.should == 1
       end
+      
         
       it "compares the ai player's last guess to the code: no match" do
         role = "cm"
         guess = "1111"
         code = "2222"
         stage_guess(role, guess, code)
-        game.ai_player.guesses.last.should == "----"
+        game.ai_player.guesses.last.should == "xxxx"
       end
+      
+      it "guesses until end of match: ai player is the code breaker" do
+        game.create_human_player("cm")
+        game.create_ai_player
+        game.set_current_players
+        code = game.set_code("1342")
+        game.code_breaker.set_code_definitions(4,1,6)
+        game.code_breaker.exhaust_guesses(code)
+        game.code_breaker.guesses.size.should > 0
+      end      
         
       it "displays all guesses" do
         role = "cm"
@@ -244,6 +272,51 @@ module Mastermind
         stage_guess(role, guess, code)
         game.display.guesses(game.code_breaker.guesses)
         output.display.should == guesses(game.code_breaker.guesses)
+      end
+      
+      it "displays 6 guesses" do
+        guesses = ["1111", "2222", "1212", "3434", "5621", "6161"]
+        game.display.guesses(guesses)
+        output.display.should ==  guesses(guesses)
+      end
+      
+      it "checks that all guesses have been made: false" do
+        game.create_human_player("cm")
+        game.create_ai_player
+        game.set_current_players
+        game.code_breaker.guesses = [1,2,3,4]
+        game.code_breaker.all_guesses_made?.should == false
+      end
+
+      it "checks that all guesses have been made: true" do
+        game.create_human_player("cm")
+        game.create_ai_player
+        game.set_current_players
+        game.code_breaker.guesses = [1,2,3,4,5,6]
+        game.code_breaker.all_guesses_made?.should == true
+      end
+      
+      it "checks that all matches have been played: false" do
+        game.matches.current_match = 5
+        game.matches.match_count = 6
+        game.all_matches_played?.should == false
+      end
+
+      it "checks that all matches have been played: true" do
+        game.matches.current_match = 4
+        game.matches.match_count = 4
+        game.all_matches_played?.should == true
+      end
+            
+      it "alerts ai is the winner: human loses" do
+        game.create_human_player("cm")
+        game.create_ai_player
+        game.set_current_players
+        game.set_code("2323")
+        guesses = ["x3xx", "23xx", "232x", "2323"]
+        game.code_breaker.guesses = guesses
+        game.match_end_alert
+        output.display.should == message("lose", "", "")
       end
       
       it "updates the current match" do

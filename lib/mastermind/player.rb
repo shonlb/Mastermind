@@ -23,7 +23,7 @@ module Mastermind
     MAX_GUESSES = 6
     
     def set_code_definitions(the_code_size, the_min_digit, the_max_digit)
-      @code_size = the_code_size
+      @guess_size = the_code_size
       @min_digit = the_min_digit
       @max_digit = the_max_digit
     end
@@ -33,7 +33,7 @@ module Mastermind
       guess_digit = guess.split("")
       code_digit = code.split("")
       guess_digit.size.times do |x|
-        status << ((guess_digit[x] == code_digit[x]) ? guess_digit[x] : "-")
+        status << ((guess_digit[x] == code_digit[x]) ? guess_digit[x] : "x")
       end
       
       @guesses << status
@@ -44,18 +44,18 @@ module Mastermind
       !!Float(check_value) rescue false
     end
     
+    def all_guesses_made?
+      guesses.size == MAX_GUESSES
+    end
+    
     # -- AI Player ----------------------------------------
     def get_random_digit
       digit = rand(max_digit) + 1
-      store = ((min_digit..max_digit) === digit) ? digit : store
+      store = ((min_digit..max_digit) === digit) ? digit : get_random_digit
     end  
     
     def make_first_guess
-      store = ""
-      guess_size.times do |digit|
-        store << get_random_digit.to_s
-      end
-      @guesses << store
+      (min_digit..max_digit).map { rand(max_digit) + 1 }.join
     end
     
     def make_guess
@@ -65,20 +65,28 @@ module Mastermind
         check = compare[store.size]
         store << ((is_numeric?(check)) ? check.to_s : get_random_digit.to_s)
       end
-      @guesses << store
+      store
     end
      
     def generate_code
-      
       store = ""
       while store.size < @guess_size
         store << get_random_digit.to_s
       end
       store
-    end 
+    end   
         
     def generate_guess
       store = (guesses == []) ? make_first_guess : make_guess
+    end
+    
+    def exhaust_guesses(code)
+      while @guesses.size < MAX_GUESSES
+        set_guess(generate_guess, code)
+        if is_numeric?(guesses.last)
+          break
+        end
+      end 
     end
     
   end
