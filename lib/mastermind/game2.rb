@@ -16,15 +16,21 @@ module Mastermind
       if valid_role?(role)
         set = (role == "cm") ? "Code Maker" : "Code Breaker"
         @human_player = Player.new(set)
+        @human_player.guess_size = code.code_size
+        @human_player.min_digit = code.min_digit
+        @human_player.max_digit = code.max_digit
       else
-        display.message("role_prompt", "", "")
-        create_human_player(user_input)
+        show_role_prompt
+        user_input
       end  
     end
     
     def create_ai_player
       set = (human_player.role == "Code Maker") ? "Code Breaker" : "Code Maker"
       @ai_player = Player.new(set)
+      @ai_player.guess_size = code.code_size
+      @ai_player.min_digit = code.min_digit
+      @ai_player.max_digit = code.max_digit
     end
     
     def set_current_players
@@ -45,8 +51,8 @@ module Mastermind
       if matches.is_valid?(value)
         matches.match_count = value.to_i
       else
-        display.message("match_prompt", matches.min_matches, matches.max_matches)
-        set_match_count(user_input)
+        show_match_prompt
+        user_input
       end
     end
     
@@ -98,10 +104,6 @@ module Mastermind
       entry == "cm" || entry == "cb"
     end
     
-    def valid_code?(entry)
-      (code.is_valid?(entry)) ? true : false
-    end
-    
     def code_match?(check_value)
       !!Float(check_value) rescue false
     end
@@ -113,11 +115,10 @@ module Mastermind
     
     def get_match_code
       if code_breaker == ai_player
-        display.message("code_prompt", code.code_size, "code")
-        check = user_input
-        (valid_code?(check)) ? check : get_match_code
+        code_breaker.generate_code
       else
-        code_maker.generate_code
+        display.message("code_prompt", code.code_size, "code")
+        user_input
       end
     end
     
@@ -142,22 +143,22 @@ module Mastermind
     
     #--Game Progression------------------------------------
     def launch_setup
-      if matches.current_match == 0
+      if matches.current_match ==0
         display.message("welcome", "", "")
         display.message("rules", "", "")
         display.message("match_prompt", matches.min_matches, matches.max_matches)
         set_match_count(user_input)
         display.message("role_prompt", "", "")
-        
         create_human_player(user_input)
-        create_ai_player
+        create_ai_player(@human_player.role)
       end
       update_current_match
-      set_current_players
+      set_code_breaker
       display.message("confirm_role", human_player.role, "")
     end
     
     def launch_code_maker
+      matches.set_current
       code_breaker.set_code_definitions(code.code_size, code.min_digit, code.max_digit)
       display.message("current_match", matches.current_match, matches.match_count)
       set_code(get_match_code)
@@ -165,7 +166,7 @@ module Mastermind
     
     def code_breaker_ai
       display.code_grid(code.code)
-      code_breaker.generate_guess
+      ai_guesses
       display.guesses(code_breaker.guesses)
       match_end_alert
       update_game_stats
@@ -214,6 +215,6 @@ module Mastermind
     def game_over
       display.message("game over", "", "")
     end
+    
   end
-  
 end

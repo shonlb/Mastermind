@@ -55,7 +55,7 @@ module Mastermind
       guess_size.times do |digit|
         store << get_random_digit.to_s
       end
-      store
+      @guesses << store
     end
     
     def make_guess
@@ -65,7 +65,7 @@ module Mastermind
         check = compare[store.size]
         store << ((is_numeric?(check)) ? check.to_s : get_random_digit.to_s)
       end
-      store
+      @guesses << store
     end
      
     def generate_code

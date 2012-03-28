@@ -21,7 +21,15 @@ module Mastermind
     end
     
     def is_valid?(entry)
-      is_numeric?(entry) && entry.to_i.between?(@min_matches,@max_matches) && entry.to_i%2 == 0
+      check = [] 
+      if is_numeric?(entry)
+        check << entry.to_i.between?(@min_matches, @max_matches)
+        check << (entry.to_i%2 == 0)
+      else
+        check << false
+      end
+      
+      check.all? { |x| x == true }
      end
   end
 end

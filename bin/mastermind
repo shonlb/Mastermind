@@ -2,5 +2,5 @@
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'mastermind'
 
-game = Mastermind::Game.new(STDOUT, nil, nil)
-game.launch_setup
+start = Mastermind::Start.new
+start.playing

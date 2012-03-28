@@ -12,7 +12,7 @@ module Mastermind
         "match_prompt"          =>  "Enter matches to be played (#{exp1}..#{exp2}).",
         "match_confirm"         =>  "Game consists of #{exp1} matches.",
         "match_display"         =>  "Match #{exp1} of #{exp2}",
-        "role_prompt"           =>  "Who will be? Enter \"cm\" for Code Maker or \"cb\" for Code Breaker",
+        "role_prompt"           =>  "Who will you be? Enter \"cm\" for Code Maker or \"cb\" for Code Breaker",
         "confirm_role"          =>  "You are the #{exp1}",
         "code_maker_instruct"   =>  "These are instructions for making a code.",
         "code_breaker_instruct" =>  "These are instructions for breaking a code.",
@@ -34,7 +34,7 @@ module Mastermind
       digit = code.split("").each do |x|
         cells << "| #{x} "
       end
-      grid =  "CODE TO BREAK/n#{border}#{cells}#{cap}#{border}"
+      grid =  "\nCODE TO BREAK\n#{border}#{cells}#{cap}#{border}\n"
       @output.puts grid
     end
     
