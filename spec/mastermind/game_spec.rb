@@ -352,6 +352,8 @@ module Mastermind
         output.display.should == message("lose", "", "")
       end
       
+      it sw
+      
       it "advances the game"
         #simulate setup
         #simultate code_maker
