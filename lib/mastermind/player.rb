@@ -1,18 +1,17 @@
 module Mastermind
   class Player
-    attr_accessor :role, 
-      :guesses, 
+    attr_accessor :guesses, 
       :score, 
       :wins, 
       :losses, 
       :guess_size,
       :min_digit,
       :max_digit
+      :valid
       
-    attr_reader :max_guesses
+    attr_reader :max_guesses, :valid
     
-    def initialize(role)
-      @role = role
+    def initialize
       @guesses = []
       @score = 0
       @wins = 0
@@ -21,6 +20,7 @@ module Mastermind
       @min_digit = 0
       @max_digit =0
       @max_guesses = 6
+      @valid = Validate.new(@max_guesses)
     end
     
     def set_code_definitions(the_code_size, the_min_digit, the_max_digit)
@@ -40,13 +40,11 @@ module Mastermind
       @guesses << status
     end
     
-    # -- Validators ---------------------------------------
-    def is_numeric?(check_value)
-      !!Float(check_value) rescue false
-    end
-    
-    def all_guesses_made?
-      guesses.size == max_guesses
+    # -- Score Keeping ------------------------------------
+    def update_score(w, l, p)
+      @wins += w
+      @losses += l
+      @points += p
     end
     
     # -- AI Player ----------------------------------------
@@ -64,7 +62,7 @@ module Mastermind
       compare = guesses.last.split("")
       while store.size < guess_size
         check = compare[store.size]
-        store << ((is_numeric?(check)) ? check.to_s : get_random_digit.to_s)
+        store << ((@valid.entry?(check)) ? check.to_s : get_random_digit.to_s)
       end
       store
     end
@@ -80,7 +78,7 @@ module Mastermind
     def exhaust_guesses(code)
       while @guesses.size < max_guesses
         set_guess(generate_guess, code)
-        if is_numeric?(guesses.last)
+        if @valid.entry?(guesses.last)
           break
         end
       end 

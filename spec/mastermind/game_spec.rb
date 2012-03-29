@@ -9,10 +9,10 @@ class FakeDisplayOut
 end
 
 class FakeEntryIn
-  attr_reader :input
+  attr_writer :string
   
-  def gets(input)
-    @input = input
+  def gets
+    @string
   end
 end
 
@@ -26,23 +26,30 @@ module Mastermind
     let(:game) {Game.new(output, input)}
     
     #game_simulators----------------------------------------------------------------
-    def message(select, exp1, exp2)
+    def user_input (string)
+      input.string = string
+      game.user_input.should == string
+    end
+    
+    def message(select, exp1="", exp2="")
       message = {
-        "welcome"               =>  "Welcome to Mastermind!",
-        "rules"                 =>  "Here's how to play...",
-        "match_prompt"          =>  "Enter matches to be played (#{exp1}..#{exp2}).",
-        "match_confirm"         =>  "Game consists of #{exp1} matches.",
-        "match_display"         =>  "Match #{exp1} of #{exp2}",
-        "role_prompt"           =>  "Who will you be? Enter \"cm\" for Code Maker or \"cb\" for Code Breaker",
-        "confirm_role"          =>  "You are the #{exp1}",
-        "code_maker_instruct"   =>  "These are instructions for making a code.",
-        "code_breaker_instruct" =>  "These are instructions for breaking a code.",
-        "code_prompt"           =>  "Enter your #{exp1}-digit #{exp2}:",
-        "guess_limit"           =>  "You are out of guesses.",
-        "current_match"         =>  "Now playing Match: #{exp1} of #{exp2}",
-        "win"                   =>  "You've won the match!",
-        "lose"                  =>  "I'm #1 -- You've lost the match!",
-        "game_over"             =>  "Thanks for playing! Come again."
+        "welcome"               =>  "Welcome to Mastermind!\n",
+        "rules"                 =>  "Here's how to play...\n",
+        "match_prompt"          =>  "Enter matches to be played (#{exp1}..#{exp2}).\n",
+        "match_confirm"         =>  "Game consists of #{exp1} matches.\n",
+        "match_display"         =>  "Match #{exp1} of #{exp2}.\n",
+        "role_prompt"           =>  "Who will you be? Enter \"cm\" for Code Maker or \"cb\" for Code Breaker.\n",
+        "confirm_role"          =>  "You are the #{exp1}.\n",
+        "code_maker_instruct"   =>  "These are instructions for making a code.\n",
+        "code_breaker_instruct" =>  "These are instructions for breaking a code.\n",
+        "code_prompt"           =>  "Enter your #{exp1}-digit #{exp2}:\n",
+        "guess_prompt"          =>  "Enter your #{exp1}-digit #{exp2}:\n",
+        "code_set"              =>  "The code has been set.\n",
+        "guess_limit"           =>  "You are out of guesses.\n",
+        "current_match"         =>  "Now playing Match: #{exp1} of #{exp2}.\n",
+        "win"                   =>  "You've won the match!\n",
+        "lose"                  =>  "I'm #1 -- You've lost the match!\n",
+        "game_over"             =>  "Thanks for playing! Come again.\n"
       }
 
       message[select]
@@ -94,8 +101,7 @@ module Mastermind
     end    
     
     def stage_guess(role, guess, code)
-      game.create_human_player(role)
-      game.create_ai_player
+      user_input(role)
       game.set_current_players
       game.code_breaker.set_guess(guess, code)
     end
@@ -103,35 +109,36 @@ module Mastermind
     #tests--------------------------------------------------------------------------
     describe "#game setup" do
       it "displays welcome" do
-        #output.should_receive(:puts).with(message("welcome", "", ""))
-        game.display.message("welcome", "", "")
-        output.display.should == message("welcome", "", "")
+        game.display.message("welcome")
+        output.display.should == message("welcome")
       end
       
       it "displays game rules" do
-        #output.should_receive(:puts).with(message("rules", 6, 20))
-        game.display.message("rules", "", "")
-        output.display.should == message("rules", "", "")
+        game.display.message("rules")
+        output.display.should == message("rules")
       end
       
       it "prompts for the number of matches" do
-        #output.should_receive(:puts).with(message("match_prompt", 6, 20))
         game.display.message("match_prompt", 6, 20)
         output.display.should == message("match_prompt", 6, 20)
       end
       
-      it "gets the number of matches for the game" 
+      it "gets the number of matches for the game" do
+        string = "6"
+        input.string = string
+        game.user_input.should == string
+      end 
       
       it "validates matches entered: invalid" do
-        game.matches.is_valid?("m") == false
+        game.matches.valid.match_count?("m") == false
       end
       
       it "validates matches entered: valid" do
-        game.matches.is_valid?("6") == true
+        game.matches.valid.match_count?("6") == true
       end
       
       it "validates matches entered: invalid" do
-        game.matches.is_valid?("35") == false
+        game.matches.valid.match_count?("35") == false
       end
       
       it "sets matches to be played" do
@@ -141,47 +148,41 @@ module Mastermind
     
     describe "#role setting: human is the 'Code Maker'" do
       it "prompts human player for role" do
-        #output.should_receive(:puts).with(message("role_prompt", "", ""))
-        game.display.message("role_prompt", "", "")
-        output.display.should == message("role_prompt", "", "")
+        #output.should_receive(:puts).with(message("role_prompt"))
+        game.display.message("role_prompt")
+        output.display.should == message("role_prompt")
       end
       
       it "gets the role input"
       
       it "validates the role input" do
-        game.valid_role?("cm").should == true  
+        game.valid.role?("cm").should == true  
       end
       
-      it "creates human player as 'Code Maker'" do
-        game.create_human_player("cm")
-        game.human_player.role.should == "Code Maker"    
-      end
-      
-      it "creates ai player as 'Code Breaker" do
-        game.create_human_player("cm")
-        game.create_ai_player
-        game.ai_player.role.should == "Code Breaker"
-      end
-      
-      it "sets the current player (player having Code Breaker role)" do
-        game.create_human_player("cm")
-        game.create_ai_player
+      it "sets human player as 'Code Maker'" do
+        user_input("cm")
         game.set_current_players
-        game.code_breaker.should == game.ai_player  
+        game.code_maker.should == game.human_player    
       end
       
-      it "sets the current player (player having Code Maker role)" do
-        game.create_human_player("cm")
-        game.create_ai_player
+      it "sets ai player as 'Code Breaker" do
+        user_input("cm")
         game.set_current_players
-        game.code_maker.should == game.human_player  
+        game.code_breaker.should == game.ai_player
+      end
+      
+      it "swaps human role from Code Maker to Code Breaker" do
+        user_input("cm")
+        game.set_current_players #human_player is code_maker
+        game.set_current_players
+        game.code_breaker.should == game.human_player  
       end
             
       it "displays role confirmation" do
-        game.create_human_player("cm")
-        #output.should_receive(:puts).with(message("confirm_role"), game.human_player.role)
-        game.display.message("confirm_role", game.human_player.role, "")
-        output.display.should == message("confirm_role", game.human_player.role, "")
+        user_input("cm")
+        game.set_current_players
+        game.role_confirmation
+        output.display.should == message("confirm_role", "Code Maker")
       end
     end
     
@@ -198,28 +199,27 @@ module Mastermind
       end
       
       it "validates the code: valid" do
-        game.code.is_valid?("1111").should == true
+        game.code.valid.entry?("1111").should == true
       end
       
       it "validates the code: invalid" do
-        game.code.is_valid?("8888").should == false
+        game.code.valid.entry?("8888").should == false
       end
       
       it "generates code: ai player is the code maker" do
-        game.create_human_player("cb")
-        game.create_ai_player
+        user_input("cb")
         game.set_current_players
         guess_size = game.code.code_size
         min_digit = game.code.min_digit
         max_digit = game.code.max_digit
         game.code_maker.set_code_definitions(guess_size, min_digit, max_digit)
         code = game.code_maker.generate_code
-        game.code.is_valid?(code).should == true
+        game.code.valid.entry?(code).should == true
       end
       
       it "prompts for code: human player is the code maker" do
-        game.display.message("code_prompt", "", "")
-        output.display.should == message("code_prompt", "", "")
+        game.display.message("code_prompt")
+        output.display.should == message("code_prompt")
       end
       
       it "gets the code from human_player"
@@ -232,8 +232,7 @@ module Mastermind
       
     describe "#code breaker: ai" do
       it "sets the code definitions" do
-        game.create_human_player("cm")
-        game.create_ai_player
+        user_input("cm")
         game.set_current_players
         guess_size = game.code.code_size
         min_digit = game.code.min_digit
@@ -248,8 +247,7 @@ module Mastermind
       end
         
       it "guesses: ai player is the code breaker: 1 guess" do
-        game.create_human_player("cm")
-        game.create_ai_player
+        user_input("cm")
         code = game.set_code("5544")
         code_size = game.code.code_size
         min_digit = game.code.min_digit
@@ -271,8 +269,7 @@ module Mastermind
       end
       
       it "guesses until end of match: ai player is the code breaker" do
-        game.create_human_player("cm")
-        game.create_ai_player
+        user_input("cm")
         game.set_current_players
         code = game.set_code("1342")
         game.code_breaker.set_code_definitions(4,1,6)
@@ -296,19 +293,18 @@ module Mastermind
       end
       
       it "checks that all guesses have been made: false" do
-        game.create_human_player("cm")
-        game.create_ai_player
+        user_input("cm")
         game.set_current_players
-        game.code_breaker.guesses = [1,2,3,4]
-        game.code_breaker.all_guesses_made?.should == false
+        guesses = [1,2,3,4]
+        game.code_breaker.guesses = guesses
+        game.code_breaker.valid.all_guesses_made?(guesses.size).should == false
       end
 
       it "checks that all guesses have been made: true" do
-        game.create_human_player("cm")
-        game.create_ai_player
+        user_input("cm")
         game.set_current_players
-        game.code_breaker.guesses = [1,2,3,4,5,6]
-        game.code_breaker.all_guesses_made?.should == true
+        guesses = [1,2,3,4,5,6]
+        game.code_breaker.valid.all_guesses_made?(guesses.size).should == game.code_breaker.valid.max_guesses
       end
       
       it "checks that all matches have been played: false" do
@@ -324,14 +320,14 @@ module Mastermind
       end
             
       it "alerts ai is the winner: human loses" do
-        game.create_human_player("cm")
-        game.create_ai_player
+        user_input("cm")
+        
         game.set_current_players
         game.set_code("2323")
         guesses = ["x3xx", "23xx", "232x", "2323"]
         game.code_breaker.guesses = guesses
         game.match_end_alert
-        output.display.should == message("lose", "", "")
+        output.display.should == message("lose")
       end
       
       it "updates the current match" do
@@ -340,8 +336,8 @@ module Mastermind
       end
       
       it "updates the code_breaker's stats: win" do
-        game.create_human_player("cm")
-        game.create_ai_player
+        user_input("cm")
+        
         game.set_current_players
         game.code_breaker.wins = 2
         game.code_breaker_win
@@ -349,8 +345,8 @@ module Mastermind
       end
 
       it "updates the code_breaker's stats: loss" do
-        game.create_human_player("cm")
-        game.create_ai_player
+        user_input("cm")
+        
         game.set_current_players
         game.code_breaker.losses = 2
         game.code_maker_win
@@ -358,21 +354,13 @@ module Mastermind
       end
       
       it "displays winner message" do
-        game.display.message("win", "", "")
-        output.display.should == message("win", "", "")
+        game.display.message("win")
+        output.display.should == message("win")
       end
       
       it "displays loser message" do
-        game.display.message("lose", "", "")
-        output.display.should == message("lose", "", "")
-      end
-      
-      it "switches player roles: human Code Maker switched to Code Breaker" do
-        game.create_human_player("cm")
-        game.create_ai_player
-        game.set_current_players
-        game.set_current_players
-        game.human_player.role.should == "Code Breaker"
+        game.display.message("lose")
+        output.display.should == message("lose")
       end
       
       it "advances the game"
@@ -382,23 +370,26 @@ module Mastermind
         #game.match.current_match.should == 2
       
       it "ends the game: displays message"   do
-        game.display.message("game over", "", "")
-        output.display.should == message("game over", "", "")
+        game.display.message("game over")
+        output.display.should == message("game over")
       end
 
     end
     
     describe "#code breaker: human" do
       it "prompts for the first guess" do
-        game.display.message("guess_prompt", "", "")
-        output.display.should == message("guess_prompt", "", "")
+        game.display.message("guess_prompt")
+        output.display.should == message("guess_prompt")
       end
       
-      it "gets the guess"
+      it "gets the guess" do
+        user_input("1111")
+        get_human_guess.should == "1111"
+      end
       
       it "validates the guess: valid" do
-        game.create_human_player("cb")
-        game.create_ai_player
+        user_input("cb")
+        
         game.set_current_players
         game.code_breaker.guesses = ["1122"]
         guess = game.code_breaker.guesses.last
@@ -406,8 +397,8 @@ module Mastermind
       end
       
       it "validates the guess: invalid" do
-        game.create_human_player("cb")
-        game.create_ai_player
+        user_input("cb")
+        
         game.set_current_players
         game.code_breaker.guesses = ["7788"]
         guess = game.code_breaker.guesses.last
@@ -415,8 +406,8 @@ module Mastermind
       end
       
       it "saves the guess: zero match" do
-        game.create_human_player("cb")
-        game.create_ai_player
+        user_input("cb")
+        
         game.set_current_players
         code = game.set_code("6634")
         guess = "3345"
@@ -425,8 +416,8 @@ module Mastermind
       end
       
       it "saves the guess: 1 match" do
-        game.create_human_player("cb")
-        game.create_ai_player
+        user_input("cb")
+        
         game.set_current_players
         code = game.set_code("6634")
         guess = "6345"
@@ -435,8 +426,8 @@ module Mastermind
       end
       
       it "saves the guess: 2 matches" do
-        game.create_human_player("cb")
-        game.create_ai_player
+        user_input("cb")
+        
         game.set_current_players
         code = game.set_code("6634")
         guess = "6344"
@@ -445,8 +436,8 @@ module Mastermind
       end
       
       it "saves the guess: 3 matches" do
-        game.create_human_player("cb")
-        game.create_ai_player
+        user_input("cb")
+        
         game.set_current_players
         code = game.set_code("6634")
         guess = "6334"
@@ -455,8 +446,8 @@ module Mastermind
       end
       
       it "saves the guess: all match" do
-        game.create_human_player("cb")
-        game.create_ai_player
+        user_input("cb")
+        
         game.set_current_players
         code = game.set_code("6634")
         guess = "6634"
@@ -465,8 +456,7 @@ module Mastermind
       end
       
       it "displays last guess" do
-        game.create_human_player("cb")
-        game.create_ai_player
+        user_input("cb")
         game.set_current_players
         code = game.set_code("5231")
         guesses = ["5431", "4562", "2234"]
