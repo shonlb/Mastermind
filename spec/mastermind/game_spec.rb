@@ -78,6 +78,21 @@ module Mastermind
       grid << border
     end
     
+    def last_guess(guess, count)
+      grid = ""
+      border = "+----------+-----+-----+-----+-----+\n"
+      grid << border
+      grid << "| Guess #{count}: "
+      cell = guess.split("")
+      
+      cell.each do |x|
+        grid << "|  #{x}  "
+      end
+      
+      grid << "|\n"
+      grid << border
+    end    
+    
     def stage_guess(role, guess, code)
       game.create_human_player(role)
       game.create_ai_player
@@ -352,7 +367,13 @@ module Mastermind
         output.display.should == message("lose", "", "")
       end
       
-      it sw
+      it "switches player roles: human Code Maker switched to Code Breaker" do
+        game.create_human_player("cm")
+        game.create_ai_player
+        game.set_current_players
+        game.set_current_players
+        game.human_player.role.should == "Code Breaker"
+      end
       
       it "advances the game"
         #simulate setup
@@ -368,16 +389,97 @@ module Mastermind
     end
     
     describe "#code breaker: human" do
-      it "prompts for the first guess"
+      it "prompts for the first guess" do
+        game.display.message("guess_prompt", "", "")
+        output.display.should == message("guess_prompt", "", "")
+      end
+      
       it "gets the guess"
-      it "validates the guess"
-      it "compares the guess to the code"
-      it "saves the guess: zero match"
-      it "saves the guess: 1 match"
-      it "saves the guess: 2 matches"
-      it "saves the guess: 3 matches"
-      it "saves the guess: all match"
-      it "displays all guesses"
+      
+      it "validates the guess: valid" do
+        game.create_human_player("cb")
+        game.create_ai_player
+        game.set_current_players
+        game.code_breaker.guesses = ["1122"]
+        guess = game.code_breaker.guesses.last
+        game.valid_code?(guess).should == true
+      end
+      
+      it "validates the guess: invalid" do
+        game.create_human_player("cb")
+        game.create_ai_player
+        game.set_current_players
+        game.code_breaker.guesses = ["7788"]
+        guess = game.code_breaker.guesses.last
+        game.valid_code?(guess).should == false
+      end
+      
+      it "saves the guess: zero match" do
+        game.create_human_player("cb")
+        game.create_ai_player
+        game.set_current_players
+        code = game.set_code("6634")
+        guess = "3345"
+        game.code_breaker.set_guess(guess, code)
+        game.code_breaker.guesses.last.should == "xxxx"          
+      end
+      
+      it "saves the guess: 1 match" do
+        game.create_human_player("cb")
+        game.create_ai_player
+        game.set_current_players
+        code = game.set_code("6634")
+        guess = "6345"
+        game.code_breaker.set_guess(guess, code)
+        game.code_breaker.guesses.last.should == "6xxx"          
+      end
+      
+      it "saves the guess: 2 matches" do
+        game.create_human_player("cb")
+        game.create_ai_player
+        game.set_current_players
+        code = game.set_code("6634")
+        guess = "6344"
+        game.code_breaker.set_guess(guess, code)
+        game.code_breaker.guesses.last.should == "6xx4"          
+      end
+      
+      it "saves the guess: 3 matches" do
+        game.create_human_player("cb")
+        game.create_ai_player
+        game.set_current_players
+        code = game.set_code("6634")
+        guess = "6334"
+        game.code_breaker.set_guess(guess, code)
+        game.code_breaker.guesses.last.should == "6x34"          
+      end
+      
+      it "saves the guess: all match" do
+        game.create_human_player("cb")
+        game.create_ai_player
+        game.set_current_players
+        code = game.set_code("6634")
+        guess = "6634"
+        game.code_breaker.set_guess(guess, code)
+        game.code_breaker.guesses.last.should == "6634"          
+      end
+      
+      it "displays last guess" do
+        game.create_human_player("cb")
+        game.create_ai_player
+        game.set_current_players
+        code = game.set_code("5231")
+        guesses = ["5431", "4562", "2234"]
+        
+        guesses.each do |x|
+          game.code_breaker.set_guess(x, code)  
+        end
+        
+        guess = game.code_breaker.guesses.last
+        count = game.code_breaker.guesses.size
+        game.display.last_guess(guess, count).should == last_guess(guess, count)
+      end
+      
       it "checks game status: code breaker wins"
       it "checks game status: code breaker loses"
       it "updates games stats"

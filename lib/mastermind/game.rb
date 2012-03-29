@@ -39,7 +39,9 @@ module Mastermind
       end
       
       @code_breaker = new_code_breaker
-      @code_maker = new_code_maker   
+      @code_maker = new_code_maker
+      code_breaker.role = "Code Breaker"
+      code_maker.role = "Code Maker"
     end
 
     def set_code(value)
@@ -107,7 +109,7 @@ module Mastermind
     end
     
     def get_match_code
-      if code_breaker == ai_player
+      if code_maker == human_player
         display.message("code_prompt", code.code_size, "code")
         check = user_input
         (valid_code?(check)) ? check : get_match_code
@@ -174,6 +176,10 @@ module Mastermind
     end
     
     def code_breaker_human
+      display.message("code_set", "", "")
+      #if code_breaker.all_guesses_made?
+      
+      
       while code_breaker.guesses.size < code_breaker.max_guesses
         guess = get_human_guess
         if code.is_valid?(guess)

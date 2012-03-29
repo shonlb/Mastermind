@@ -8,6 +8,8 @@ module Mastermind
       :guess_size,
       :min_digit,
       :max_digit
+      
+    attr_reader :max_guesses
     
     def initialize(role)
       @role = role
@@ -18,9 +20,8 @@ module Mastermind
       @guess_size = 0
       @min_digit = 0
       @max_digit =0
+      @max_guesses = 6
     end
-    
-    MAX_GUESSES = 6
     
     def set_code_definitions(the_code_size, the_min_digit, the_max_digit)
       @guess_size = the_code_size
@@ -45,7 +46,7 @@ module Mastermind
     end
     
     def all_guesses_made?
-      guesses.size == MAX_GUESSES
+      guesses.size == max_guesses
     end
     
     # -- AI Player ----------------------------------------
@@ -55,7 +56,7 @@ module Mastermind
     end  
     
     def make_first_guess
-      (min_digit..max_digit).map { rand(max_digit) + 1 }.join
+      (min_digit..guess_size).map { rand(max_digit) + 1 }.join
     end
     
     def make_guess
@@ -69,11 +70,7 @@ module Mastermind
     end
      
     def generate_code
-      store = ""
-      while store.size < @guess_size
-        store << get_random_digit.to_s
-      end
-      store
+      (min_digit..guess_size).map { rand(max_digit) + 1 }.join
     end   
         
     def generate_guess
@@ -81,7 +78,7 @@ module Mastermind
     end
     
     def exhaust_guesses(code)
-      while @guesses.size < MAX_GUESSES
+      while @guesses.size < max_guesses
         set_guess(generate_guess, code)
         if is_numeric?(guesses.last)
           break

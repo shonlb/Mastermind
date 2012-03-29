@@ -54,16 +54,32 @@ module Mastermind
       @output.puts grid
     end
     
-      def stats(player, wins, losses, score)
-        stats =  "\n"
-        stats << "#{player}: WINS: #{wins}  |  LOSSES: #{losses}  |  POINTS: #{score}\n"
-        @output.puts stats
+    def last_guess(guess, count)
+      grid = ""
+      border = "+----------+-----+-----+-----+-----+\n"
+      grid << border
+      grid << "| Guess #{count}: "
+      cell = guess.split("")
+      
+      cell.each do |x|
+        grid << "|  #{x}  "
       end
       
-      def game_stats(current_match, match_count)
-        stats = "\nMatches played: #{current_match} of #{match_count}\n"
-        @output.puts stats
-      end
+      grid << "|\n"
+      grid << border
+      @output.puts grid
+    end
+    
+    def stats(player, wins, losses, score)
+      stats =  "\n"
+      stats << "#{player}: WINS: #{wins}  |  LOSSES: #{losses}  |  POINTS: #{score}\n"
+      @output.puts stats
+    end
+      
+    def game_stats(current_match, match_count)
+      stats = "\nMatches played: #{current_match} of #{match_count}\n"
+      @output.puts stats
+    end
     
   end
 end
