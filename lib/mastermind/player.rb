@@ -10,25 +10,19 @@ module Mastermind
       :max_digit
       :valid
       
-    attr_reader :max_guesses, :valid
+    attr_reader :max_guesses, :valid, :code_size, :min_digit, :max_digit
     
-    def initialize
+    def initialize(code_size, min_digit, max_digit)
       @guesses = []
       @score = 0
       @wins = 0
       @losses = 0
       @points = 0
-      @guess_size = 0
-      @min_digit = 0
-      @max_digit =0
+      @guess_size = code_size
+      @min_digit = min_digit
+      @max_digit = max_digit
       @max_guesses = 6
       @valid = Validate.new(@max_guesses)
-    end
-    
-    def set_code_definitions(the_code_size, the_min_digit, the_max_digit)
-      @guess_size = the_code_size
-      @min_digit = the_min_digit
-      @max_digit = the_max_digit
     end
 
     def set_guess(guess, code)
@@ -51,18 +45,18 @@ module Mastermind
     
     # -- AI Player ----------------------------------------
     def get_random_digit
-      digit = rand(max_digit) + 1
-      store = ((min_digit..max_digit) === digit) ? digit : get_random_digit
+      digit = rand(@max_digit) + 1
+      ((@min_digit..@max_digit) === digit) ? digit : get_random_digit
     end  
     
     def make_first_guess
-      (min_digit..guess_size).map { rand(max_digit) + 1 }.join
+      (@min_digit..@guess_size).map { rand(@max_digit) + 1 }.join
     end
     
     def make_guess
       store = ""
-      compare = guesses.last.split("")
-      while store.size < guess_size
+      compare = @guesses.last.split("")
+      while store.size < @guess_size
         check = compare[store.size]
         store << ((@valid.entry?(check)) ? check.to_s : get_random_digit.to_s)
       end
@@ -70,17 +64,17 @@ module Mastermind
     end
      
     def generate_code
-      (min_digit..guess_size).map { rand(max_digit) + 1 }.join
+      (@min_digit..@guess_size).map { rand(@max_digit) + 1 }.join
     end   
         
     def generate_guess
-      store = (guesses == []) ? make_first_guess : make_guess
+      store = (@guesses == []) ? make_first_guess : make_guess
     end
     
     def exhaust_guesses(code)
-      while @guesses.size < max_guesses
+      while @guesses.size < @max_guesses
         set_guess(generate_guess, code)
-        if @valid.entry?(guesses.last)
+        if @valid.entry?(@guesses.last)
           break
         end
       end 

@@ -49,6 +49,7 @@ module Mastermind
         "current_match"         =>  "Now playing Match: #{exp1} of #{exp2}.\n",
         "win"                   =>  "You've won the match!\n",
         "lose"                  =>  "I'm #1 -- You've lost the match!\n",
+        "try_again"             =>  "Try again.",
         "game_over"             =>  "Thanks for playing! Come again.\n"
       }
 
@@ -56,13 +57,13 @@ module Mastermind
     end
     
     def code_grid(code)
-      border = "               +---+---+---+---+\n"
+      border = "      +---+---+---+---+\n"
       cells =""
       cap = "|\n"
       digit = code.split("").each do |x|
         cells << "| #{x} "
       end
-      grid =  "#{border}CODE TO BREAK: #{cells}#{cap}#{border}\n"
+      grid =  "#{border}CODE: #{cells}#{cap}#{border}\n"
     end
 
     def guess(guess)
@@ -209,10 +210,6 @@ module Mastermind
       it "generates code: ai player is the code maker" do
         user_input("cb")
         game.set_current_players
-        guess_size = game.code.code_size
-        min_digit = game.code.min_digit
-        max_digit = game.code.max_digit
-        game.code_maker.set_code_definitions(guess_size, min_digit, max_digit)
         code = game.code_maker.generate_code
         game.code.valid.entry?(code).should == true
       end
@@ -234,10 +231,6 @@ module Mastermind
       it "sets the code definitions" do
         user_input("cm")
         game.set_current_players
-        guess_size = game.code.code_size
-        min_digit = game.code.min_digit
-        max_digit = game.code.max_digit
-        game.code_breaker.set_code_definitions(guess_size, min_digit, max_digit)
         game.ai_player.guess_size.should == 4  
       end
       
@@ -249,11 +242,7 @@ module Mastermind
       it "guesses: ai player is the code breaker: 1 guess" do
         user_input("cm")
         code = game.set_code("5544")
-        code_size = game.code.code_size
-        min_digit = game.code.min_digit
-        max_digit = game.code.max_digit
         game.set_current_players
-        game.code_breaker.set_code_definitions(code_size, min_digit, max_digit)
         guess = game.code_breaker.generate_guess
         game.code_breaker.set_guess(guess, code)
         game.ai_player.guesses.size.should == 1
@@ -272,7 +261,6 @@ module Mastermind
         user_input("cm")
         game.set_current_players
         code = game.set_code("1342")
-        game.code_breaker.set_code_definitions(4,1,6)
         game.code_breaker.exhaust_guesses(code)
         game.code_breaker.guesses.size.should > 0
       end      
@@ -470,7 +458,11 @@ module Mastermind
       it "displays winner message"
       it "displays loser message"
       it "advances the game"
-      it "ends the game: displays message"
+      it "ends the game" do
+        #game.matches.match_count = 6
+        #game.matches.current_match = 6
+        #game.matches.valid.all_matches_played?().should == true
+      end
     end
   end
 end

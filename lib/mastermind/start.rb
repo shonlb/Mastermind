@@ -9,3 +9,7 @@ module Mastermind
     end
   end
 end
+
+if __FILE__
+  GameRunner.start
+end

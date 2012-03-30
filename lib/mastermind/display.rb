@@ -23,6 +23,7 @@ module Mastermind
         "current_match"         =>  "Now playing Match: #{exp1} of #{exp2}.\n",
         "win"                   =>  "You've won the match!\n",
         "lose"                  =>  "I'm #1 -- You've lost the match!\n",
+        "try_again"             =>  "Try again.",
         "game_over"             =>  "Thanks for playing! Come again.\n"
       }
 
@@ -30,27 +31,32 @@ module Mastermind
     end
     
     def code_grid(code)
-      border = "               +---+---+---+---+\n"
+      border = "      +---+---+---+---+\n"
       cells =""
       cap = "|\n"
       digit = code.split("").each do |x|
         cells << "| #{x} "
       end
-      grid =  "#{border}CODE TO BREAK: #{cells}#{cap}#{border}\n"
+      grid =  "#{border}CODE: #{cells}#{cap}#{border}\n"
       @output.puts grid
     end
-    
+ 
+     def guess(guess)
+      row = ""
+      digit = guess.split("")
+      digit.each do |show|
+        row << "|  #{show}  "
+      end
+      grid = "#{row}|\n"
+    end
+       
     def guesses(all_guesses)
       grid = ""
       border = "+----------+-----+-----+-----+-----+\n"
       all_guesses.size.times do |row|
         grid << border
         grid << "| Guess #{row + 1}: "
-        cell = all_guesses[row].split("")
-        cell.each do |x|
-          grid << "|  #{x}  "
-        end
-        grid << "|\n"
+        grid << guess(all_guesses[row])
       end
       grid << border
       @output.puts grid

@@ -8,15 +8,13 @@ module Mastermind
       @display = Display.new(output)
       @matches = Matches.new
       @code = Code.new
-      @human_player = Player.new
-      @ai_player = Player.new
-      @code_breaker = nil
-      @code_maker = nil
+      @human_player = Player.new(@code.code_size, @code.min_digit, @code.max_digit)
+      @ai_player = Player.new(@code.code_size, @code.min_digit, @code.max_digit)
       @valid = Validate.new
     end
    
     def set_current_players 
-      if @code_maker == nil
+      if @code_maker.nil?
         role_select = user_input
         if @valid.role?(role_select)
           @code_maker = (role_select == "cm") ? @human_player : @ai_player
@@ -28,6 +26,7 @@ module Mastermind
         @code_maker = (@code_maker == @human_player) ? @ai_player : @human_player
         @code_breaker = (@code_breaker == @human_player) ? @ai_player : @human_player
       end
+      @code_breaker.guesses = []
     end
 
     def set_code(value)
@@ -55,19 +54,18 @@ module Mastermind
         @code_breaker.update_score(0, 1, 0)
         @code_maker.update_score(1, 0, 1)
       end
-    end  
-    
+    end      
     
     #--Player Input-------------------------------------
     def user_input
       @input.gets.chomp 
     end
     
-    def get_match_code
+    def get_match_code      
       if @code_maker == @human_player
-        @display.message("code_prompt", @code.code_size, "code")
+        @display.message("code_prompt", @code.code_size, "code using digits between #{@code.min_digit} and #{@code.max_digit}")
         check = user_input
-        (@valid.code?(check)) ? check : get_match_code
+        (@code.valid.entry?(check)) ? check : get_match_code
       else
         @code_maker.generate_code
       end
@@ -87,14 +85,19 @@ module Mastermind
     def match_end_alert
       if @code.valid.code_match?(@code_breaker.guesses.last, @code.code)
         (@code_breaker == @ai_player) ? @display.message("lose") : @display.message("win")
-      else @code_breaker.all_guesses_made?
-        (@code_breaker == @ai_player) ? @display.message("win") : @display.message("lose")
+      else 
+        if @code_breaker == @ai_player
+          @display.message("win")
+        else
+          @display.message("lose")
+          @display.code_grid(@code.code)
+        end
       end
     end
     
     def display_game_stats
-      @display.stats("You", @human_player.wins, @human_player.losses, @human_player.score)
-      @display.stats("AI", @ai_player.wins, @ai_player.losses, @ai_player.score)
+      @display.stats("You", @human_player.wins, @human_player.losses, @human_player.points)
+      @display.stats("AI", @ai_player.wins, @ai_player.losses, @ai_player.points)
       @display.game_stats(@matches.current_match, @matches.match_count)
     end
     
@@ -106,15 +109,13 @@ module Mastermind
         @display.message("match_prompt", matches.min_matches, matches.max_matches)
         set_match_count(user_input)
         @display.message("role_prompt")
-        set_current_players
       end
       update_current_match
-      set_current_players
+      set_current_players 
       role_confirmation
     end
     
     def launch_code_maker
-      @code_maker.set_code_definitions(@code.code_size, @code.min_digit, @code.max_digit)
       @display.message("current_match", @matches.current_match, @matches.match_count)
       set_code(get_match_code)
     end
@@ -130,31 +131,34 @@ module Mastermind
       match_end_alert
       update_player_stats
       display_game_stats
-      advance_game
+      advance_game unless @matches.match_count == @matches.current_match
     end
     
     def code_breaker_human
-      @display.message("code_set")
+      puts "code_breaker_human called"
+      (@code_breaker.guesses.size == 0) ? @display.message("code_set") : @display.message("try_again")
       
       while @code_breaker.valid.all_guesses_made?(@code_breaker.guesses) == false
+      #until @code_breaker.valid.all_guesses_made?(@code_breaker.guesses)
         guess = get_human_guess
         
-        if @code.valid.entry?(guess) 
-          set_guess(guess)
-          @display.last_guess(guess, @code_breaker_guesses.size)
-          (@code.valid.code_match?(guess)) ? break : code_breaker_human 
-        else 
-          code_breaker_human
+        if @code.valid.entry?(guess)
+          @code_breaker.set_guess(guess, @code.code)
+          @display.last_guess(@code_breaker.guesses.last, @code_breaker.guesses.size)
+          if @code.valid.code_match?(guess, @code.code)
+            break
+          end 
         end
       end
       
       match_end_alert
-      update_game_stats
-      advance_game        
+      update_player_stats
+      display_game_stats
+      advance_game unless @matches.match_count == @matches.current_match
     end
     
-    def advance_game
-      (@matches.valid.all_matches_played?(@matches.current_match, @matches.match_count)) ? @display.message("game_over") : game_play
+    def advance_game 
+        game_play
     end
     
     def game_play

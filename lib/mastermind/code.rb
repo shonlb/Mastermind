@@ -10,9 +10,5 @@ module Mastermind
       @code_size = 4
       @valid = Validate.new(@code_size, @min_digit, @max_digit)
     end
-    
-    def set_code(entry)
-      code = entry
-    end
   end
 end
