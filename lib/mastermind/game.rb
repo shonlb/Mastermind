@@ -106,7 +106,7 @@ module Mastermind
         @display.message("match_prompt", matches.min_matches, matches.max_matches)
         set_match_count(user_input)
         @display.message("role_prompt")
-        create_players
+        set_current_players
       end
       update_current_match
       set_current_players
@@ -114,15 +114,19 @@ module Mastermind
     end
     
     def launch_code_maker
-      @code_breaker.set_code_definitions(code.code_size, code.min_digit, code.max_digit)
-      @display.message("current_match", matches.current_match, matches.match_count)
+      @code_maker.set_code_definitions(@code.code_size, @code.min_digit, @code.max_digit)
+      @display.message("current_match", @matches.current_match, @matches.match_count)
       set_code(get_match_code)
     end
     
+    def launch_code_breaker
+      (@code_breaker == @ai_player) ? code_breaker_ai : code_breaker_human  
+    end
+        
     def code_breaker_ai
-      @display.code_grid(code.code)
-      @code_breaker.exhaust_guesses(code.code)
-      @display.guesses(code_breaker.guesses)
+      @display.code_grid(@code.code)
+      @code_breaker.exhaust_guesses(@code.code)
+      @display.guesses(@code_breaker.guesses)
       match_end_alert
       update_player_stats
       display_game_stats
@@ -132,13 +136,13 @@ module Mastermind
     def code_breaker_human
       @display.message("code_set")
       
-      while @code_breaker.valid.all_guesses_made? == false
+      while @code_breaker.valid.all_guesses_made?(@code_breaker.guesses) == false
         guess = get_human_guess
         
-        if @valid.code?(guess) 
+        if @code.valid.entry?(guess) 
           set_guess(guess)
           @display.last_guess(guess, @code_breaker_guesses.size)
-          (@valid.code_match?(guess)) ? break : code_breaker_human 
+          (@code.valid.code_match?(guess)) ? break : code_breaker_human 
         else 
           code_breaker_human
         end
@@ -149,12 +153,8 @@ module Mastermind
       advance_game        
     end
     
-    def launch_code_breaker
-      (@code_breaker == @ai_player) ? code_breaker_ai : code_breaker_human  
-    end
-    
     def advance_game
-      (@valid.all_matches_played?) ? @display.message("game_over") : game_play
+      (@matches.valid.all_matches_played?(@matches.current_match, @matches.match_count)) ? @display.message("game_over") : game_play
     end
     
     def game_play

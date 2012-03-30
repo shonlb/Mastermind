@@ -398,7 +398,6 @@ module Mastermind
       
       it "validates the guess: invalid" do
         user_input("cb")
-        
         game.set_current_players
         game.code_breaker.guesses = ["7788"]
         guess = game.code_breaker.guesses.last
@@ -407,7 +406,6 @@ module Mastermind
       
       it "saves the guess: zero match" do
         user_input("cb")
-        
         game.set_current_players
         code = game.set_code("6634")
         guess = "3345"
@@ -417,7 +415,6 @@ module Mastermind
       
       it "saves the guess: 1 match" do
         user_input("cb")
-        
         game.set_current_players
         code = game.set_code("6634")
         guess = "6345"
@@ -427,7 +424,6 @@ module Mastermind
       
       it "saves the guess: 2 matches" do
         user_input("cb")
-        
         game.set_current_players
         code = game.set_code("6634")
         guess = "6344"
@@ -437,7 +433,6 @@ module Mastermind
       
       it "saves the guess: 3 matches" do
         user_input("cb")
-        
         game.set_current_players
         code = game.set_code("6634")
         guess = "6334"
@@ -447,7 +442,6 @@ module Mastermind
       
       it "saves the guess: all match" do
         user_input("cb")
-        
         game.set_current_players
         code = game.set_code("6634")
         guess = "6634"
