@@ -295,33 +295,32 @@ module Mastermind
       it "checks that all guesses have been made: false" do
         user_input("cm")
         game.set_current_players
-        guesses = [1,2,3,4]
+        guesses = ["1111","2222","3333","4444"]
         game.code_breaker.guesses = guesses
-        game.code_breaker.valid.all_guesses_made?(guesses.size).should == false
+        game.code_breaker.valid.all_guesses_made?(guesses).should == false
       end
 
       it "checks that all guesses have been made: true" do
         user_input("cm")
         game.set_current_players
-        guesses = [1,2,3,4,5,6]
-        game.code_breaker.valid.all_guesses_made?(guesses.size).should == game.code_breaker.valid.max_guesses
+        guesses = ["1111","2222","3333","4444","5555","6666"]
+        game.code_breaker.valid.all_guesses_made?(guesses).should == true
       end
       
       it "checks that all matches have been played: false" do
-        game.matches.current_match = 5
-        game.matches.match_count = 6
-        game.all_matches_played?.should == false
+        current_match = 5
+        match_count = 6
+        game.matches.valid.all_matches_played?(current_match, match_count).should == false
       end
 
       it "checks that all matches have been played: true" do
-        game.matches.current_match = 4
-        game.matches.match_count = 4
-        game.all_matches_played?.should == true
+        current_match = 6
+        match_count = 6
+        game.matches.valid.all_matches_played?(current_match, match_count).should == true
       end
             
       it "alerts ai is the winner: human loses" do
         user_input("cm")
-        
         game.set_current_players
         game.set_code("2323")
         guesses = ["x3xx", "23xx", "232x", "2323"]
@@ -335,21 +334,23 @@ module Mastermind
         game.update_current_match.should == 2  
       end
       
-      it "updates the code_breaker's stats: win" do
-        user_input("cm")
-        
+      it "updates the code_breaker's stats: win" do 
+        user_input("cm") 
         game.set_current_players
+        game.set_code("2222")
+        game.code_breaker.guesses = ["1111", "2222"]
         game.code_breaker.wins = 2
-        game.code_breaker_win
+        game.update_player_stats
         game.ai_player.wins.should == 3
       end
 
       it "updates the code_breaker's stats: loss" do
         user_input("cm")
-        
         game.set_current_players
+        game.set_code"6666"
         game.code_breaker.losses = 2
-        game.code_maker_win
+        game.code_breaker.guesses = [1,2,3,4,5,6]
+        game.update_player_stats
         game.ai_player.losses.should == 3
       end
       
@@ -384,16 +385,15 @@ module Mastermind
       
       it "gets the guess" do
         user_input("1111")
-        get_human_guess.should == "1111"
+        game.get_human_guess.should == "1111"
       end
       
       it "validates the guess: valid" do
         user_input("cb")
-        
         game.set_current_players
         game.code_breaker.guesses = ["1122"]
         guess = game.code_breaker.guesses.last
-        game.valid_code?(guess).should == true
+        game.code.valid.entry?(guess).should == true
       end
       
       it "validates the guess: invalid" do
@@ -402,7 +402,7 @@ module Mastermind
         game.set_current_players
         game.code_breaker.guesses = ["7788"]
         guess = game.code_breaker.guesses.last
-        game.valid_code?(guess).should == false
+        game.code.valid.entry?(guess).should == false
       end
       
       it "saves the guess: zero match" do

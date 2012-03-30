@@ -5,23 +5,14 @@ module Mastermind
       def role?(entry)
         entry == "cm" || entry == "cb"
       end
-    
-      def code_match?(check_value)
-        check_value == @code.code
-      end
-    
-      def all_matches_played?
-        @matches.current_match == @matches.match_count
-      end
     end    
   end
   
   class Code   #-----------------------------------------------------------------------
     class Validate
-      attr_reader :code, :code_size, :min_digit, :max_digit
+      attr_reader :code_size, :min_digit, :max_digit
       
-      def initialize(code, code_size, min_digit, max_digit)
-        @code = code
+      def initialize(code_size, min_digit, max_digit)
         @code_size = code_size
         @min_digit = min_digit
         @max_digit = max_digit
@@ -38,16 +29,21 @@ module Mastermind
           false
         end
       end
+    
+      def code_match?(check_value, code)
+        check_value == code
+      end  
     end
   end
       
   class Matches# ------------------------------------------------------------------
     class Validate 
-      attr_reader :min_matches, :max_matches
+      attr_reader :min_matches, :max_matches, :match_count
         
       def initialize(min_matches, max_matches)
         @min_matches = min_matches
-        @max_matches = max_matches  
+        @max_matches = max_matches
+        @match_count = match_count  
       end
         
       def is_numeric?(check_value)
@@ -60,6 +56,10 @@ module Mastermind
         else
           false
         end
+      end
+      
+      def all_matches_played?(current_match, match_count)
+        current_match == match_count
       end
     end
   end 

@@ -8,7 +8,7 @@ module Mastermind
       @min_digit = 1
       @max_digit = 6
       @code_size = 4
-      @valid = Validate.new(@code, @code_size,@min_digit, @max_digit)
+      @valid = Validate.new(@code_size, @min_digit, @max_digit)
     end
     
     def set_code(entry)

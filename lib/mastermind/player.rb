@@ -3,7 +3,8 @@ module Mastermind
     attr_accessor :guesses, 
       :score, 
       :wins, 
-      :losses, 
+      :losses,
+      :points, 
       :guess_size,
       :min_digit,
       :max_digit
@@ -16,6 +17,7 @@ module Mastermind
       @score = 0
       @wins = 0
       @losses = 0
+      @points = 0
       @guess_size = 0
       @min_digit = 0
       @max_digit =0
@@ -42,9 +44,9 @@ module Mastermind
     
     # -- Score Keeping ------------------------------------
     def update_score(w, l, p)
-      @wins += w
-      @losses += l
-      @points += p
+      @wins = @wins + w
+      @losses = @losses + l
+      @points = @points + p
     end
     
     # -- AI Player ----------------------------------------

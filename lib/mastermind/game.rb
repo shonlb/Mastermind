@@ -48,7 +48,7 @@ module Mastermind
     end
     
     def update_player_stats
-      if @valid.code_match?(@code_breaker.guesses.last)
+      if @code.valid.code_match?(@code_breaker.guesses.last, @code.code)
         @code_breaker.update_score(1, 0, 0)
         @code_maker.update_score(0, 1, 0)
       else
@@ -85,7 +85,7 @@ module Mastermind
     end
     
     def match_end_alert
-      if @valid.code_match?(@code_breaker.guesses.last)
+      if @code.valid.code_match?(@code_breaker.guesses.last, @code.code)
         (@code_breaker == @ai_player) ? @display.message("lose") : @display.message("win")
       else @code_breaker.all_guesses_made?
         (@code_breaker == @ai_player) ? @display.message("win") : @display.message("lose")
